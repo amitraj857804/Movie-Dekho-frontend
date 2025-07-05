@@ -7,6 +7,8 @@ import MyBookings from "./pages/MyBookings";
 import Favorite from "./pages/Favorite";
 import Footer from "./components/Footer";
 import SignUpPage from "./pages/SignUpPage";
+import LoginPage from "./pages/LoginPage";
+import OtpLogin from "./components/OtpLogin";
 
 export {
     Navbar,
@@ -17,5 +19,7 @@ export {
     SeatLayout,
     MyBookings,
     Favorite,
-    SignUpPage
+    SignUpPage,
+    LoginPage,
+    OtpLogin,
 }

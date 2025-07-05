@@ -79,7 +79,7 @@ function Navbar() {
       <div className="flex items-center gap-8">
         <SearchIcon className="max-md:hidden w-6 h-6 cursor-pointer" />
         <button
-          className="px-4 py-1 sm:px-7 sm:py-2 bg-primary hover:bg-primary-dull
+          className="px-3 py-1 sm:px-7  sm:py-2 bg-primary hover:text-primary hover:border hover:border-primary hover:bg-transparent 
         transition  rounded-full font-medium cursor-pointer"
           onClick={signUpHandler}
         >

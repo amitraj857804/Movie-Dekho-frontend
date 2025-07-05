@@ -14,52 +14,43 @@ function InputField({
   placeholder,
   inputmode = null,
   readOnly,
+  showError = true,
+  mobileShowError = true,
+  centerMobileError = false, // New prop for centering mobile errors
   ...props
 }) {
   const validationRules = {
     required: { value: required, message },
-    minLength: min
-      ? {
-          value: min,
-          message:
-            " password must consit of characters and numbers and have minimun lenght is 4 ",
-        }
-      : null,
-    maxLength: max
-      ? {
-          value: max,
-          message: " Mobile no should be 10 digit ",
-        }
-      : null,
+    
   };
 
   if (type === "email") {
     validationRules.pattern = {
       value: /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
-      message: "Invalid email",
+      message: "*Invalid email",
     };
   } else if (type === "password") {
     validationRules.pattern = {
       value: /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/,
-      message: "Password must consist of minimum 4 characters and 4 number ",
+      message:"*Minimun lenght 6 required",
     };
   } else if (id === "phone") {
     validationRules.pattern = {
       value: /^\d{10}$/,
-      message: "Mobile no should be 10 digit",
+      message: "*Mobile no should be 10 digit",
     };
     validationRules.minLength = {
       value: 10,
-      message: "Mobile no should be 10 digit",
+      message: "*Mobile no should be 10 digit",
     };
     validationRules.maxLength = {
       value: 10,
-      message: "Mobile no should be 10 digit",
+      message: "*Mobile no should be 10 digit",
     };
   }
 
   return (
-    <div className="flex flex-col gap-1">
+    <div className={`flex flex-col gap-1 relative ${errors[id]?.message && mobileShowError ? 'sm:mb-0 mb-6' : ''}`}>
       <label
         htmlFor={id}
         className={`${className ? className : ""} font-semibold text-md`}
@@ -74,7 +65,7 @@ function InputField({
         maxLength={id === "phone" ? max : undefined}
         className={`${
           className ? className : ""
-        } px-2 py-2 border outline-none bg-transparent text-slate-700 rounded-md ${
+        } px-2 py-2 border outline-none bg-white/90 text-black rounded-full  ${
           errors[id]?.message ? "border-red-500" : "border-slate-600"
         }`}
         {...register(id, validationRules)}
@@ -82,9 +73,11 @@ function InputField({
         inputMode={inputmode}
         {...props}
       />
-
-      {errors[id]?.message && (
-        <p className="text-sm font-semibold text-red-600 mt-0 w-full">
+      
+      {/* Show error on mobile only */}
+      {errors[id]?.message && mobileShowError && (
+        <p className={`sm:hidden absolute -bottom-8 left-0 right-0 text-xs font-semibold text-red-600 px-2 py-1 pb-3 rounded z-10
+        ${centerMobileError ? "text-center" : "" } `}>
           {errors[id]?.message}*
         </p>
       )}
