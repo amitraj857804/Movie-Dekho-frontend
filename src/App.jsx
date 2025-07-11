@@ -10,9 +10,12 @@ import {
   MyBookings,
   Favorite,
   SignUpPage,
+  LoginPage,
+  OtpLogin
 } from "./index.js";
 import { Route, Routes, useLocation } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
+
 
 function App() {
   const [count, setCount] = useState(0);
@@ -30,6 +33,8 @@ function App() {
         <Route path="/my-bookings" element={<MyBookings />} />
         <Route path="/favorite" element={<Favorite />} />
         <Route path="/signup" element={<SignUpPage />} />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/login-with-otp" element={<OtpLogin />} />
       </Routes>
       {!isAdminRoute && <Footer />}
     </>
