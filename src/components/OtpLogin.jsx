@@ -1,19 +1,32 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import InputField from "./inputField/InputField";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { selectToken, setToken } from "./store/authStore";
+import {
+  selectToken,
+  setToken,
+  setPreviousPage,
+  setNavigationContext,
+  selectNavigationContext,
+} from "./store/authStore";
+import { useNavigationContext } from "../hooks/useNavigationContext";
+import { FaArrowLeft } from "react-icons/fa";
 import api from "../api/api";
 import toast from "react-hot-toast";
 
 function OtpLogin() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [loader, setLoader] = useState(false);
   const [otpSent, setOtpSent] = useState(false);
   const [onLogin, setOnLogin] = useState(true);
+  const [resendTimer, setResendTimer] = useState(0);
+  const [canResend, setCanResend] = useState(true);
   const dispatch = useDispatch();
   const token = useSelector(selectToken);
+  const navigationContext = useSelector(selectNavigationContext);
+  const { goBack: handleGoBack, getBackButtonText } = useNavigationContext();
 
   const {
     register,
@@ -31,27 +44,107 @@ function OtpLogin() {
     mode: "onChange",
   });
 
+  // Restore state from URL parameters (when returning from SignUp)
+  useEffect(() => {
+    const urlParams = new URLSearchParams(location.search);
+    const restoredOtpSent = urlParams.get("otpSent") === "true";
+    const restoredEmail = urlParams.get("email");
+
+    if (restoredOtpSent) {
+      setOtpSent(true);
+      // Reset timer when returning from signup, allow immediate resend
+      setCanResend(true);
+      setResendTimer(0);
+    }
+
+    if (restoredEmail) {
+      // Use setValue to update the form field
+      reset({ email: restoredEmail, otp: "" });
+    }
+
+    // Clear URL parameters after restoring state
+    if (urlParams.has("otpSent") || urlParams.has("email")) {
+      navigate("/login-with-otp", { replace: true });
+    }
+  }, [location.search, reset, navigate]);
+
+  // Handle direct navigation to OTP login page
+  useEffect(() => {
+    // If no navigation context is set and no URL params, this is a direct entry
+    const urlParams = new URLSearchParams(location.search);
+    if (
+      !navigationContext.fromPage &&
+      !urlParams.has("otpSent") &&
+      !urlParams.has("email")
+    ) {
+      dispatch(
+        setNavigationContext({
+          fromPage: "otplogin-direct", // Special case: OTP login page should go back to regular login
+          pageState: null,
+          isDirectEntry: false, // We want to go back to login, not home
+        })
+      );
+    }
+  }, [navigationContext.fromPage, location.search, dispatch]);
+
+  // Timer logic for OTP resend
+  useEffect(() => {
+    let interval = null;
+    if (resendTimer > 0) {
+      interval = setInterval(() => {
+        setResendTimer((timer) => {
+          if (timer === 1) {
+            setCanResend(true);
+            return 0;
+          }
+          return timer - 1;
+        });
+      }, 1000);
+    }
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [resendTimer]);
+
+  const startResendTimer = (seconds = 30) => {
+    setCanResend(false);
+    setResendTimer(seconds);
+  };
+
   const navigateToSignUp = () => {
+    // Store detailed navigation context
+    dispatch(
+      setNavigationContext({
+        fromPage: "otplogin",
+        pageState: {
+          otpSent,
+          email: getValues("email"),
+        },
+        isDirectEntry: false,
+      })
+    );
+
+    // Also set simple previous page for compatibility
+    dispatch(setPreviousPage("/login-with-otp"));
+
     navigate("/SignUp");
     setOnLogin(false);
   };
 
   const sendOtpHandler = async (data) => {
-    
     setLoader(true);
     try {
-      
       const response = await api.post("api/auth/initiate-login", {
         email: data.email,
       });
-      
+
       toast.success("OTP sent successfully!");
       setOtpSent(true);
+      startResendTimer(30); // Set timer for 30 seconds
       setTimeout(() => {
         setFocus("otp");
       }, 100);
     } catch (error) {
-      
       toast.error(
         error.response?.data?.message || "Failed to send OTP. Try again"
       );
@@ -61,25 +154,22 @@ function OtpLogin() {
   };
 
   const verifyOtpHandler = async (data) => {
-    console.log("Verifying OTP:", data);
     setLoader(true);
     try {
       const { data: response } = await api.post("api/auth/verify-otp", {
         email: data.email,
         otp: data.otp,
       });
-      console.log("OTP Verify Response:", response);
 
       // Store token using Redux
       if (response.token) {
         dispatch(setToken(response.token));
         toast.success("Login successful!");
-        navigate("/"); 
+        navigate("/");
       } else {
         toast.error("Login successful but no token received");
       }
     } catch (error) {
-      console.error("OTP Verify Error:", error);
       const errorMessage =
         error.response?.data?.message ||
         error.response?.data ||
@@ -101,6 +191,8 @@ function OtpLogin() {
 
   const changeEmail = () => {
     setOtpSent(false);
+    setCanResend(true);
+    setResendTimer(0);
     reset({ email: getValues("email"), otp: "" });
   };
 
@@ -142,6 +234,18 @@ function OtpLogin() {
           onSubmit={handleSubmit(otpHandler)}
           className=" w-full py-8 px-4 sm:px-8 rounded-md "
         >
+          {/* Go Back Button */}
+          <div className="flex justify-start mb-2">
+            <button
+              type="button"
+              onClick={handleGoBack}
+              className="flex items-center gap-2 text-primary hover:text-white transition-colors duration-200 text-sm font-medium cursor-pointer"
+            >
+              <FaArrowLeft className="text-xs" />
+              {getBackButtonText()}
+            </button>
+          </div>
+
           <div className="flex justify-around mb-4">
             <h1
               className={`text-center px-2 text-primary font-bold lg:text-2xl text-xl cursor-pointer relative
@@ -214,7 +318,7 @@ function OtpLogin() {
             >
               <div className="flex-1 mt-2">
                 <InputField
-                  required={false} 
+                  required={false}
                   id="otp"
                   type="text"
                   message="Enter otp"
@@ -231,7 +335,7 @@ function OtpLogin() {
                 {errors.otp?.message}*
               </p>
             )}
-
+            {otpSent && <div></div>}
             <div className="flex justify-center w-full gap-3">
               <button
                 disabled={loader}
@@ -245,10 +349,14 @@ function OtpLogin() {
                 <button
                   type="button"
                   onClick={resendOtp}
-                  disabled={loader}
-                  className="font-semibold text-primary border border-primary bg-transparent sm:w-[35%] w-[40%] py-2 rounded-full hover:bg-primary hover:text-white transition-colors duration-200 my-3 cursor-pointer"
+                  disabled={loader || !canResend}
+                  className={`font-semibold border border-primary sm:w-[35%] w-[40%] py-2 rounded-full transition-colors duration-200 my-3 ${
+                    canResend && !loader 
+                      ? 'text-primary bg-transparent hover:bg-primary hover:text-white cursor-pointer' 
+                      : 'text-gray-500 bg-gray-200 cursor-not-allowed'
+                  }`}
                 >
-                  Resend OTP
+                  {canResend ? "Resend OTP" : `Resend in ${resendTimer}s`}
                 </button>
               )}
             </div>

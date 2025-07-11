@@ -11,7 +11,8 @@ import {
   Favorite,
   SignUpPage,
   LoginPage,
-  OtpLogin
+  OtpLogin,
+  ResetPassword
 } from "./index.js";
 import { Route, Routes, useLocation } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
@@ -35,6 +36,7 @@ function App() {
         <Route path="/signup" element={<SignUpPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/login-with-otp" element={<OtpLogin />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
       </Routes>
       {!isAdminRoute && <Footer />}
     </>

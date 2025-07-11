@@ -1,9 +1,12 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import InputField from "./inputField/InputField";
 import { Link, useNavigate } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import { clearPreviousPage, selectPreviousPage, selectNavigationContext, clearNavigationContext, setNavigationContext } from "./store/authStore";
+import { useNavigationContext } from "../hooks/useNavigationContext";
 import toast from "react-hot-toast";
-import { FaUser, FaEye, FaEyeSlash, FaPhoneSquareAlt } from "react-icons/fa";
+import { FaUser, FaEye, FaEyeSlash, FaPhoneSquareAlt, FaArrowLeft } from "react-icons/fa";
 import { BsGenderMale } from "react-icons/bs";
 import { MdEmail } from "react-icons/md";
 import { RiLockPasswordFill } from "react-icons/ri";
@@ -11,6 +14,10 @@ import api from "../api/api";
 
 const SignUp = () => {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const previousPage = useSelector(selectPreviousPage);
+  const navigationContext = useSelector(selectNavigationContext);
+  const { goBack: handleGoBack, getBackButtonText } = useNavigationContext();
   const [loader, setLoader] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [onSignup, setOnsignUp] = useState(true);
@@ -29,6 +36,18 @@ const SignUp = () => {
     },
     mode: "onTouched",
   });
+
+  // Handle direct navigation to signup page
+  useEffect(() => {
+    // If no navigation context is set, this is a direct entry
+    if (!navigationContext.fromPage) {
+      dispatch(setNavigationContext({
+        fromPage: null,
+        pageState: null,
+        isDirectEntry: true
+      }));
+    }
+  }, [navigationContext.fromPage, dispatch]);
 
   const registerHandler = async (data) => {
     setLoader(true);
@@ -50,12 +69,25 @@ const SignUp = () => {
     navigate("/login");
     setOnsignUp(false);
   };
+
   return (
     <div className="sm:w-[550px] sm:m-4  mt-20 sm:my-28 flex items-center justify-center  sm:flex shadow-2xl shadow-[#000000] rounded-lg  ">
       <form
         onSubmit={handleSubmit(registerHandler)}
         className="  w-full py-8 px-4 sm:px-8 rounded-md"
       >
+        {/* Go Back Button */}
+        <div className="flex justify-start mb-2">
+          <button
+            type="button"
+            onClick={handleGoBack}
+            className="flex items-center gap-2 text-primary hover:text-white transition-colors duration-200 text-sm font-medium cursor-pointer"
+          >
+            <FaArrowLeft className="text-xs" />
+            {getBackButtonText()}
+          </button>
+        </div>
+
         <div className="flex justify-around mb-4">
           <h1
             className="text-center font-serif text-primary font-bold lg:text-2xl text-xl cursor-pointer"

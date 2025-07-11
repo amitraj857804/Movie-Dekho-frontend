@@ -4,10 +4,11 @@ import { Link, useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import { useForm } from "react-hook-form";
 import { RiLockPasswordFill } from "react-icons/ri";
-import { FaUser, FaEye, FaEyeSlash } from "react-icons/fa";
+import { FaUser, FaEye, FaEyeSlash, FaArrowLeft } from "react-icons/fa";
 import api from "../api/api";
 import { useDispatch, useSelector } from "react-redux";
-import { setToken, selectToken } from "./store/authStore";
+import { setToken, selectToken, setPreviousPage, setNavigationContext, selectNavigationContext } from "./store/authStore";
+import { useNavigationContext } from "../hooks/useNavigationContext";
 
 function Login() {
   const navigate = useNavigate();
@@ -16,6 +17,8 @@ function Login() {
   const [onLogin, setOnLogin] = useState(true);
   const dispatch = useDispatch();
   const token = useSelector(selectToken);
+  const navigationContext = useSelector(selectNavigationContext);
+  const { goBack: handleGoBack, getBackButtonText } = useNavigationContext();
 
   const {
     register,
@@ -37,6 +40,17 @@ function Login() {
     }
   }, [token]);
 
+  // Handle direct navigation to login page
+  useEffect(() => {
+    // Always reset navigation context when landing on login page
+    // This ensures users can go back to home from login
+    dispatch(setNavigationContext({
+      fromPage: null,
+      pageState: null,
+      isDirectEntry: true
+    }));
+  }, [dispatch]); // Remove navigationContext.fromPage dependency to always reset
+
   const loginHandler = async (data) => {
     setLoader(true);
     try {
@@ -52,7 +66,35 @@ function Login() {
     }
   };
 
+  const navigateToResetPassword = () => {
+    // Set navigation context when going to reset password
+    dispatch(setNavigationContext({
+      fromPage: 'login',
+      pageState: null,
+      isDirectEntry: false
+    }));
+    navigate("/reset-password");
+  };
+
+  const navigateToOtpLogin = () => {
+    // Set navigation context when going to OTP login
+    dispatch(setNavigationContext({
+      fromPage: 'login',
+      pageState: null,
+      isDirectEntry: false
+    }));
+    navigate("/login-with-otp");
+  };
+
   const navigateToSignUp = () => {
+    // Store navigation context - this is a direct entry point
+    dispatch(setNavigationContext({
+      fromPage: null,
+      pageState: null,
+      isDirectEntry: true // User came directly to login, so going back should go to home
+    }));
+    
+    dispatch(setPreviousPage('/login'));
     navigate("/SignUp");
     setOnLogin(false);
   };
@@ -62,6 +104,18 @@ function Login() {
         onSubmit={handleSubmit(loginHandler)}
         className=" w-full py-8 px-4 sm:px-8 rounded-md "
       >
+        {/* Go Back Button */}
+        <div className="flex justify-start mb-2">
+          <button
+            type="button"
+            onClick={handleGoBack}
+            className="flex items-center gap-2 text-primary hover:text-white transition-colors duration-200 text-sm font-medium cursor-pointer"
+          >
+            <FaArrowLeft className="text-xs" />
+            {getBackButtonText()}
+          </button>
+        </div>
+
         <div className="flex justify-around mb-4">
           <h1
             className={`text-center px-2 text-primary font-bold lg:text-2xl text-xl cursor-pointer relative
@@ -173,7 +227,10 @@ function Login() {
             </div>
           </div>
         </div>
-        <div className="text-center mt-3 opacity-[0.5] cursor-pointer">
+        <div 
+          className="text-center mt-3 opacity-[0.5] cursor-pointer hover:opacity-[0.8] transition-opacity"
+          onClick={navigateToResetPassword}
+        >
           Forget Password?
         </div>
         <div className="flex justify-center ">
@@ -187,7 +244,7 @@ function Login() {
         </div>
         <div
           className="text-center cursor-pointer opacity-[0.5]"
-          onClick={() => navigate("/login-with-otp")}
+          onClick={navigateToOtpLogin}
         >
           Login with OTP
         </div>
