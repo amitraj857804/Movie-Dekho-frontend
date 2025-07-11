@@ -16,7 +16,7 @@ function InputField({
   readOnly,
   showError = true,
   mobileShowError = true,
-  centerMobileError = false, // New prop for centering mobile errors
+  centerMobileError = false, 
   ...props
 }) {
   const validationRules = {

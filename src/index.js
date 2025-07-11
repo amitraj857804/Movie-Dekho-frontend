@@ -9,6 +9,7 @@ import Footer from "./components/Footer";
 import SignUpPage from "./pages/SignUpPage";
 import LoginPage from "./pages/LoginPage";
 import OtpLogin from "./components/OtpLogin";
+import ResetPassword from "./components/ResetPassword";
 
 export {
     Navbar,
@@ -22,4 +23,5 @@ export {
     SignUpPage,
     LoginPage,
     OtpLogin,
+    ResetPassword,
 }
