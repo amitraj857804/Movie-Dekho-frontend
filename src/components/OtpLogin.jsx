@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useForm } from "react-hook-form";
 import InputField from "./inputField/InputField";
 import { useNavigate, useLocation } from "react-router-dom";
@@ -23,6 +23,7 @@ function OtpLogin() {
   const [onLogin, setOnLogin] = useState(true);
   const [resendTimer, setResendTimer] = useState(0);
   const [canResend, setCanResend] = useState(true);
+  const intervalRef = useRef(null);
   const dispatch = useDispatch();
   const token = useSelector(selectToken);
   const navigationContext = useSelector(selectNavigationContext);
@@ -87,26 +88,42 @@ function OtpLogin() {
     }
   }, [navigationContext.fromPage, location.search, dispatch]);
 
-  // Timer logic for OTP resend
+  // Timer logic for OTP resend - Most efficient version
   useEffect(() => {
-    let interval = null;
-    if (resendTimer > 0) {
-      interval = setInterval(() => {
+    if (resendTimer > 0 && !intervalRef.current) {
+      console.log("Starting timer:", resendTimer);
+      intervalRef.current = setInterval(() => {
         setResendTimer((timer) => {
-          if (timer === 1) {
+          console.log("Timer tick:", timer);
+          if (timer <= 1) {
             setCanResend(true);
+            if (intervalRef.current) {
+              clearInterval(intervalRef.current);
+              intervalRef.current = null;
+            }
             return 0;
           }
           return timer - 1;
         });
       }, 1000);
     }
+    
+    // Cleanup when component unmounts or timer should stop
+    if (resendTimer === 0 && intervalRef.current) {
+      console.log("Cleaning up timer");
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    }
+    
     return () => {
-      if (interval) clearInterval(interval);
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
     };
   }, [resendTimer]);
 
-  const startResendTimer = (seconds = 30) => {
+  const startResendTimer = (seconds) => {
     setCanResend(false);
     setResendTimer(seconds);
   };
@@ -145,8 +162,9 @@ function OtpLogin() {
         setFocus("otp");
       }, 100);
     } catch (error) {
+      console.log(error);
       toast.error(
-        error.response?.data?.message || "Failed to send OTP. Try again"
+        error.response?.data || "Failed to send OTP. Try again"
       );
     } finally {
       setLoader(false);
@@ -193,6 +211,11 @@ function OtpLogin() {
     setOtpSent(false);
     setCanResend(true);
     setResendTimer(0);
+    // Clear the interval when changing email
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    }
     reset({ email: getValues("email"), otp: "" });
   };
 
