@@ -91,10 +91,10 @@ function OtpLogin() {
   // Timer logic for OTP resend - Most efficient version
   useEffect(() => {
     if (resendTimer > 0 && !intervalRef.current) {
-      console.log("Starting timer:", resendTimer);
+      
       intervalRef.current = setInterval(() => {
         setResendTimer((timer) => {
-          console.log("Timer tick:", timer);
+          
           if (timer <= 1) {
             setCanResend(true);
             if (intervalRef.current) {
@@ -110,7 +110,7 @@ function OtpLogin() {
     
     // Cleanup when component unmounts or timer should stop
     if (resendTimer === 0 && intervalRef.current) {
-      console.log("Cleaning up timer");
+     
       clearInterval(intervalRef.current);
       intervalRef.current = null;
     }
@@ -162,7 +162,7 @@ function OtpLogin() {
         setFocus("otp");
       }, 100);
     } catch (error) {
-      console.log(error);
+      c
       toast.error(
         error.response?.data || "Failed to send OTP. Try again"
       );
