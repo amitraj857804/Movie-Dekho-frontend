@@ -29,10 +29,11 @@ const SignUp = () => {
     formState: { errors },
   } = useForm({
     defaultValues: {
-      fullname: "",
+      username: "",
       email: "",
       password: "",
       phone: "",
+      gender: "",
     },
     mode: "onTouched",
   });
@@ -52,14 +53,15 @@ const SignUp = () => {
   const registerHandler = async (data) => {
     setLoader(true);
     try {
+      console.log("Sending registration data:", data); // Debug log
       const { data: response } = await api.post("/api/auth/register", data);
       
       reset();
       navigate("/login");
-      toast.success("SignedUp Successful!y!");
+      toast.success("SignedUp Successfully!");
     } catch (error) {
-      console.error("signup error:", error.response.data);
-      toast.error(error.response.data || "Signup failed. Please try again.");
+      console.error("signup error:", error.response?.data || error.message);
+      toast.error(error.response?.data?.message || error.response?.data || "Signup failed. Please try again.");
     } finally {
       setLoader(false);
     }
@@ -120,7 +122,7 @@ const SignUp = () => {
         <div className="flex flex-col text-white gap-2">
           <div
             className={`sm:flex items-center justify-between gap-3 relative ${
-              errors.fullname?.message || errors.email?.message ? "sm:mb-6" : ""
+              errors.username?.message || errors.email?.message ? "sm:mb-6" : ""
             }`}
           >
             <div className="flex-1">
@@ -135,7 +137,7 @@ const SignUp = () => {
               </div>
               <InputField
                 required
-                id="fullname"
+                id="username"
                 type="text"
                 message="*Name required"
                 placeholder="Full Name"
@@ -168,12 +170,12 @@ const SignUp = () => {
             </div>
 
             {/* Row-level error display - only on sm+ screens */}
-            {(errors.fullname?.message || errors.email?.message) && (
+            {(errors.username?.message || errors.email?.message) && (
               <div className="absolute -bottom-5 left-0 right-0 sm:flex gap-3 hidden">
                 <div className="flex-1">
-                  {errors.fullname?.message && (
+                  {errors.username?.message && (
                     <p className="text-xs font-semibold text-red-600 px-2 py-1 rounded">
-                      {errors.fullname.message}*
+                      {errors.username.message}*
                     </p>
                   )}
                 </div>
@@ -291,13 +293,13 @@ const SignUp = () => {
                   Select Your Gender
                 </option>
                 <option value="male" className="bg-gray-900 text-gray-50">
-                  Male
+                  MALE
                 </option>
                 <option value="female" className="bg-gray-900 text-gray-50">
-                  Female
+                  FEMALE
                 </option>
                 <option value="other" className="bg-gray-900 text-gray-50">
-                  Other
+                  OTHER
                 </option>
               </select>
 

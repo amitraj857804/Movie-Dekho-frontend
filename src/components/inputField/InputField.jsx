@@ -30,10 +30,7 @@ function InputField({
       message: "*Invalid email",
     };
   } else if (type === "password") {
-    validationRules.pattern = {
-      value: /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/,
-      message:"*Minimun lenght 6 required",
-    };
+   
   } else if (id === "phone") {
     validationRules.pattern = {
       value: /^\d{10}$/,
