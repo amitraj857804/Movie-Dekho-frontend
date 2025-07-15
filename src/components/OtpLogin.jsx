@@ -262,7 +262,7 @@ function OtpLogin() {
             <button
               type="button"
               onClick={handleGoBack}
-              className="flex items-center gap-2 text-primary hover:text-white transition-colors duration-200 text-sm font-medium cursor-pointer"
+              className="flex items-center gap-2 text-primary hover:!text-white transition-colors duration-200 text-sm font-medium cursor-pointer"
             >
               <FaArrowLeft className="text-xs" />
               {getBackButtonText()}
@@ -303,7 +303,7 @@ function OtpLogin() {
 
           <div className="flex flex-col  gap-2 justify-center items-center">
             <div
-              className={`sm:flex  sm:w-[50%] w-[100%] items-center justify-between gap-3 relative `}
+              className={`sm:flex  sm:w-[50%] w-[100%] items-center justify-between gap-2 relative `}
             >
               <div className="flex-1 mt-2">
                 <InputField
@@ -323,7 +323,7 @@ function OtpLogin() {
                 <button
                   type="button"
                   onClick={changeEmail}
-                  className="text-primary text-sm hover:underline ml-2 whitespace-nowrap cursor-pointer"
+                  className="text-primary text-sm hover:underline  whitespace-nowrap cursor-pointer"
                 >
                   Change Email
                 </button>
@@ -335,7 +335,7 @@ function OtpLogin() {
               </p>
             )}
             <div
-              className={` sm:w-[50%] w-[100%] items-center justify-between gap-3 relative ${
+              className={` w-[100%] sm:w-[48%] sm:-ml-2 items-center justify-between gap-3 relative ${
                 otpSent ? "" : "hidden"
               } `}
             >
@@ -359,11 +359,11 @@ function OtpLogin() {
               </p>
             )}
             {otpSent && <div></div>}
-            <div className="flex justify-center w-full gap-3">
+            <div className="flex justify-center w-full gap-3 ">
               <button
                 disabled={loader}
                 type="submit"
-                className="font-semibold text-white bg-gradient-to-bl from-primary to bg-red-600 sm:w-[35%] w-[50%] py-2 rounded-full  hover:border hover:border-primary hover:bg-black transition-colors duration-100 my-3 cursor-pointer"
+                className="font-semibold text-white bg-gradient-to-bl from-primary to bg-red-600 sm:w-[28%] w-[50%] py-2 rounded-full  hover:border hover:border-primary hover:bg-black transition-colors duration-100 my-3 cursor-pointer"
               >
                 {loader ? "Loading..." : otpSent ? "Verify OTP" : "Send OTP"}
               </button>
@@ -373,7 +373,7 @@ function OtpLogin() {
                   type="button"
                   onClick={resendOtp}
                   disabled={loader || !canResend}
-                  className={`font-semibold border border-primary sm:w-[35%] w-[40%] py-2 rounded-full transition-colors duration-200 my-3 ${
+                  className={`font-semibold border border-primary sm:w-[25%] w-[40%] py-2 rounded-full transition-colors duration-200 my-3 ${
                     canResend && !loader 
                       ? 'text-primary bg-transparent hover:bg-primary hover:text-white cursor-pointer' 
                       : 'text-gray-500 bg-gray-200 cursor-not-allowed'

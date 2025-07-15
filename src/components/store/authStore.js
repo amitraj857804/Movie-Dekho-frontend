@@ -1,14 +1,45 @@
-import { configureStore, createSlice } from "@reduxjs/toolkit";
+import { configureStore, createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+import api from "../../api/api";
+import toast from "react-hot-toast";
+
+// Async thunk for fetching username
+export const fetchUserName = createAsyncThunk(
+    'auth/fetchUserName',
+    async (_, { getState, rejectWithValue }) => {
+        try {
+            const state = getState();
+            const token = state.auth.token;
+
+            if (!token) {
+                throw new Error('No token available');
+            }
+
+            const response = await api.get("api/auth/username", {
+                headers: {
+                    "Authorization": `Bearer ${token}`
+                }
+            });
+
+            return response.data.username || response.data;
+        } catch (error) {
+
+            const errorMessage = error.response?.data?.message || error.message || 'Failed to fetch username';
+            return rejectWithValue(errorMessage);
+        }
+    }
+);
 
 const initialState = {
-    token: localStorage.getItem("JWT_TOKEN") 
+    token: localStorage.getItem("JWT_TOKEN")
         ? JSON.parse(localStorage.getItem("JWT_TOKEN"))
         : null,
-    previousPage: null, // Track the previous page
+    userName: null,
+    userNameLoading: false,
+    previousPage: null,
     navigationContext: {
-        fromPage: null,    // Which page user came from
-        pageState: null,   // Any state from that page (like otpSent, etc.)
-        isDirectEntry: true // Whether user entered directly or navigated from another auth page
+        fromPage: null,
+        pageState: null,
+        isDirectEntry: true
     }
 }
 
@@ -18,7 +49,7 @@ export const tokenSlice = createSlice({
     reducers: {
         setToken: (state, action) => {
             state.token = action.payload;
-            
+
             if (action.payload) {
                 localStorage.setItem("JWT_TOKEN", JSON.stringify(action.payload));
             } else {
@@ -48,27 +79,52 @@ export const tokenSlice = createSlice({
                 isDirectEntry: true
             };
         },
+        setUserName: (state, action) => {
+            state.userName = action.payload;
+        },
+        clearUserName: (state) => {
+            state.userName = null;
+        }
+    },
+    extraReducers: (builder) => {
+        builder
+            .addCase(fetchUserName.pending, (state) => {
+                state.userNameLoading = true;
+            })
+            .addCase(fetchUserName.fulfilled, (state, action) => {
+                state.userNameLoading = false;
+                state.userName = action.payload;
+            })
+            .addCase(fetchUserName.rejected, (state, action) => {
+                state.userNameLoading = false;
+                state.userName = null;
+                console.error('Failed to fetch username:', action.payload);
+            });
     }
 });
 
- const authStore = configureStore({
+const authStore = configureStore({
     reducer: {
         auth: tokenSlice.reducer
     }
 });
 
-export const { 
-    setToken, 
-    clearToken, 
-    setPreviousPage, 
-    clearPreviousPage, 
-    setNavigationContext, 
-    clearNavigationContext 
+export const {
+    setToken,
+    clearToken,
+    setPreviousPage,
+    clearPreviousPage,
+    setNavigationContext,
+    clearNavigationContext,
+    setUserName,
+    clearUserName,
 } = tokenSlice.actions;
 
 export const selectToken = (state) => state.auth.token;
 export const selectPreviousPage = (state) => state.auth.previousPage;
 export const selectNavigationContext = (state) => state.auth.navigationContext;
+export const selectUsername = (state) => state.auth.userName;
+export const selectUsernameLoading = (state) => state.auth.userNameLoading;
 
 export default authStore
 

@@ -1,17 +1,241 @@
 @import url("https://fonts.googleapis.com/css2?family=Open+Sans:ital,wdth,wght@0,75..100,300..800;1,75..100,300..800&family=Outfit:wght@100..900&display=swap");
 @import "tailwindcss";
 
+/* Custom scrollbar styles applied globally */
 * {
   font-family: "Outfit", sans-serif;
   scrollbar-width: thin;
-  scrollbar-color: #787777;
+  scrollbar-color: #F84565 #1a1a1a;
+}
+
+/* Enhanced custom scrollbar for webkit browsers */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #0f0f0f;
+  border-radius: 10px;
+  box-shadow: inset 0 0 3px rgba(0, 0, 0, 0.3);
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #F84565 0%, #F63854 100%);
+  border-radius: 10px;
+  box-shadow: 0 2px 4px rgba(248, 69, 101, 0.3);
+  transition: all 0.3s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #F63854 0%, #e31e3f 100%);
+  box-shadow: 0 4px 8px rgba(248, 69, 101, 0.5);
+  transform: scale(1.1);
+}
+
+::-webkit-scrollbar-thumb:active {
+  background: linear-gradient(180deg, #e31e3f 0%, #d01736 100%);
+}
+
+/* Scrollbar for horizontal scroll */
+::-webkit-scrollbar:horizontal {
+  height: 8px;
+}
+
+/* Custom scrollbar for specific containers */
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: #F84565 #1a1a1a;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: rgba(26, 26, 26, 0.5);
+  border-radius: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #F84565;
+  border-radius: 6px;
+  transition: background 0.3s ease;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #F63854;
 } 
-@theme{
+/* Tailwind CSS theme configuration */
+@theme {
     --color-primary: #F84565;
-    --color-primary-dull: #F63854 #1e1e1e;
+    --color-primary-dull: #F63854;
 }
 
 body{
     color:white;
     background-color: #09090B;
+}
+
+/* Primary color utility classes for consistent theming */
+.bg-primary {
+    background-color: #F84565 !important;
+}
+
+.text-primary {
+    color: #F84565 !important;
+}
+
+.border-primary {
+    border-color: #F84565 !important;
+}
+
+.hover\:bg-primary\/90:hover {
+    background-color: rgba(248, 69, 101, 0.9) !important;
+}
+
+/* Smooth scrolling behavior */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Ensure all containers have custom scrollbar */
+div, section, article, main, aside, nav, header, footer {
+  scrollbar-width: thin;
+  scrollbar-color: #F84565 #1a1a1a;
+}
+
+/* Special scrollbar for modal and overlay elements */
+.modal-content, .dropdown-menu, .overlay-content {
+  scrollbar-width: thin;
+  scrollbar-color: #F84565 rgba(26, 26, 26, 0.8);
+}
+
+.modal-content::-webkit-scrollbar,
+.dropdown-menu::-webkit-scrollbar,
+.overlay-content::-webkit-scrollbar {
+  width: 4px;
+}
+
+.modal-content::-webkit-scrollbar-track,
+.dropdown-menu::-webkit-scrollbar-track,
+.overlay-content::-webkit-scrollbar-track {
+  background: rgba(26, 26, 26, 0.3);
+  border-radius: 4px;
+}
+
+.modal-content::-webkit-scrollbar-thumb,
+.dropdown-menu::-webkit-scrollbar-thumb,
+.overlay-content::-webkit-scrollbar-thumb {
+  background: #F84565;
+  border-radius: 4px;
+}
+
+.modal-content::-webkit-scrollbar-thumb:hover,
+.dropdown-menu::-webkit-scrollbar-thumb:hover,
+.overlay-content::-webkit-scrollbar-thumb:hover {
+  background: #F63854;
+}
+
+/* Responsive scrollbar styles */
+@media (max-width: 768px) {
+  ::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 3px;
+    height: 3px;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  ::-webkit-scrollbar-thumb {
+    background: #FF6B8A;
+    border: 1px solid #ffffff;
+  }
+  
+  ::-webkit-scrollbar-track {
+    background: #000000;
+    border: 1px solid #333333;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  ::-webkit-scrollbar-thumb {
+    transition: none;
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    transition: none;
+  }
+}
+
+/* Dark theme specific adjustments */
+@media (prefers-color-scheme: dark) {
+  ::-webkit-scrollbar-track {
+    background: #0a0a0a;
+  }
+}
+
+/* Custom animations for Movie Carousel */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slide-in-left {
+  from {
+    opacity: 0;
+    transform: translateX(-50px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 0 0 5px rgba(248, 69, 101, 0.5);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(248, 69, 101, 0.8);
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.8s ease-out;
+}
+
+.animate-slide-in-left {
+  animation: slide-in-left 0.6s ease-out;
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 2s infinite;
+}
+
+/* Line clamp utility */
+.line-clamp-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Smooth backdrop filter */
+.backdrop-blur-sm {
+  backdrop-filter: blur(4px);
 }

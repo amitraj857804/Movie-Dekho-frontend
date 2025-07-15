@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import InputField from "./inputField/InputField";
-import { Link, useNavigate } from "react-router-dom";
+import {  useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import { useForm } from "react-hook-form";
 import { RiLockPasswordFill } from "react-icons/ri";
@@ -17,7 +17,6 @@ function Login() {
   const [onLogin, setOnLogin] = useState(true);
   const dispatch = useDispatch();
   const token = useSelector(selectToken);
-  const navigationContext = useSelector(selectNavigationContext);
   const { goBack: handleGoBack, getBackButtonText } = useNavigationContext();
 
   const {
@@ -109,7 +108,7 @@ function Login() {
           <button
             type="button"
             onClick={handleGoBack}
-            className="flex items-center gap-2 text-primary hover:text-white transition-colors duration-200 text-sm font-medium cursor-pointer"
+            className="flex items-center gap-2 text-primary hover:!text-white transition-colors duration-200 text-sm font-medium cursor-pointer"
           >
             <FaArrowLeft className="text-xs" />
             {getBackButtonText()}

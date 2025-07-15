@@ -1,12 +1,21 @@
 import React, { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import InputField from "./inputField/InputField";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { clearPreviousPage, selectPreviousPage, selectNavigationContext, clearNavigationContext, setNavigationContext } from "./store/authStore";
+import {
+  selectNavigationContext,
+  setNavigationContext,
+} from "./store/authStore";
 import { useNavigationContext } from "../hooks/useNavigationContext";
 import toast from "react-hot-toast";
-import { FaUser, FaEye, FaEyeSlash, FaPhoneSquareAlt, FaArrowLeft } from "react-icons/fa";
+import {
+  FaUser,
+  FaEye,
+  FaEyeSlash,
+  FaPhoneSquareAlt,
+  FaArrowLeft,
+} from "react-icons/fa";
 import { BsGenderMale } from "react-icons/bs";
 import { MdEmail } from "react-icons/md";
 import { RiLockPasswordFill } from "react-icons/ri";
@@ -15,12 +24,10 @@ import api from "../api/api";
 const SignUp = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const previousPage = useSelector(selectPreviousPage);
   const navigationContext = useSelector(selectNavigationContext);
   const { goBack: handleGoBack, getBackButtonText } = useNavigationContext();
   const [loader, setLoader] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [onSignup, setOnsignUp] = useState(true);
 
   const {
     register,
@@ -42,26 +49,32 @@ const SignUp = () => {
   useEffect(() => {
     // If no navigation context is set, this is a direct entry
     if (!navigationContext.fromPage) {
-      dispatch(setNavigationContext({
-        fromPage: null,
-        pageState: null,
-        isDirectEntry: true
-      }));
+      dispatch(
+        setNavigationContext({
+          fromPage: null,
+          pageState: null,
+          isDirectEntry: true,
+        })
+      );
     }
   }, [navigationContext.fromPage, dispatch]);
 
   const registerHandler = async (data) => {
+    console.log(data);
     setLoader(true);
     try {
-      console.log("Sending registration data:", data); // Debug log
       const { data: response } = await api.post("/api/auth/register", data);
-      
+      console.log(response);
       reset();
       navigate("/login");
       toast.success("SignedUp Successfully!");
     } catch (error) {
-      console.error("signup error:", error.response?.data || error.message);
-      toast.error(error.response?.data?.message || error.response?.data || "Signup failed. Please try again.");
+      console.log(error);
+      toast.error(
+        error.response?.data?.message ||
+          error.response?.data ||
+          "Signup failed. Please try again."
+      );
     } finally {
       setLoader(false);
     }
@@ -69,27 +82,25 @@ const SignUp = () => {
 
   const navigateToLogin = () => {
     navigate("/login");
-    setOnsignUp(false);
   };
 
   return (
-    <div className="sm:w-[550px] sm:m-4  mt-20 sm:my-28 flex items-center justify-center  sm:flex shadow-2xl shadow-[#000000] rounded-lg  ">
+    <div className="sm:w-[550px] sm:m-4 mt-20 sm:my-28 flex items-center justify-center sm:flex shadow-2xl shadow-[#000000] rounded-lg">
       <form
         onSubmit={handleSubmit(registerHandler)}
-        className="  w-full py-8 px-4 sm:px-8 rounded-md"
+        className="w-full py-8 px-4 sm:px-8 rounded-md"
       >
         {/* Go Back Button */}
         <div className="flex justify-start mb-2">
           <button
             type="button"
             onClick={handleGoBack}
-            className="flex items-center gap-2 text-primary hover:text-white transition-colors duration-200 text-sm font-medium cursor-pointer"
+            className="flex items-center gap-2 text-primary hover:!text-white transition-colors duration-200 text-sm font-medium cursor-pointer"
           >
             <FaArrowLeft className="text-xs" />
             {getBackButtonText()}
           </button>
         </div>
-
         <div className="flex justify-around mb-4">
           <h1
             className="text-center font-serif text-primary font-bold lg:text-2xl text-xl cursor-pointer"
@@ -98,17 +109,12 @@ const SignUp = () => {
             Login
           </h1>
           <h1
-            className={`text-center px-2 text-primary font-bold lg:text-2xl text-xl cursor-pointer relative
-                ${
-                  onSignup
-                    ? "after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-full after:h-1  after:bg-gradient-to-r after:from-white after:via-primary after:to-orange-500 after:rounded-full after:-mb-1"
-                    : ""
-                } `}
+            className="text-center px-2 text-primary font-bold lg:text-2xl text-xl cursor-pointer relative
+                after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-full after:h-1 after:bg-gradient-to-r after:from-white after:via-primary after:to-orange-500 after:rounded-full after:-mb-1"
           >
             SignUp
           </h1>
         </div>
-
         <hr className="mt-2 mb-5 border-0 h-px bg-gradient-to-r from-transparent via-primary to-transparent" />
         <div className="sm:max-w-lg sm:px-4 text-center flex items-center justify-center py-2">
           <div className=" flex flex-col items-center justify-center">
@@ -136,7 +142,6 @@ const SignUp = () => {
                 </label>
               </div>
               <InputField
-                required
                 id="username"
                 type="text"
                 message="*Name required"
@@ -146,6 +151,7 @@ const SignUp = () => {
                 className={" mb-1"}
                 showError={true}
                 mobileShowError={true}
+                required={true}
               />
             </div>
 
@@ -157,7 +163,6 @@ const SignUp = () => {
                 </label>
               </div>
               <InputField
-                required
                 id="email"
                 type="email"
                 message="*Email required"
@@ -166,6 +171,7 @@ const SignUp = () => {
                 errors={errors}
                 showError={true}
                 mobileShowError={true}
+                required={true}
               />
             </div>
 
@@ -203,7 +209,6 @@ const SignUp = () => {
                 </label>
               </div>
               <InputField
-                required
                 id="phone"
                 type="text"
                 message="*Mobile number required"
@@ -215,6 +220,7 @@ const SignUp = () => {
                 className={" mb-1"}
                 showError={true}
                 mobileShowError={true}
+                required={true}
               />
             </div>
             <div className="flex-1">
@@ -229,7 +235,6 @@ const SignUp = () => {
               </div>
               <div className="relative w-full">
                 <InputField
-                  required
                   id="password"
                   type={`${showPassword ? "text" : "password"}`}
                   message="*Password required"
@@ -239,6 +244,7 @@ const SignUp = () => {
                   errors={errors}
                   showError={true}
                   mobileShowError={true}
+                  required={true}
                 />
                 <div
                   className="absolute right-3 top-3.5 cursor-pointer text-red-400 opacity-[0.5]"
@@ -285,9 +291,10 @@ const SignUp = () => {
               <select
                 id="gender"
                 name="gender"
-                required
                 className="mt-1 block w-full pl-3 pr-12 rounded-full border border-gray-300 text-gray-50 bg-gray-900 py-2 shadow-sm focus:border-gray-500 focus:outline-none focus:ring-blue-500 appearance-none"
-                {...register("gender")}
+                {...register("gender", {
+                  required: { value: true, message: "*Gender required" },
+                })}
               >
                 <option value="" className="bg-gray-900 text-gray-50">
                   Select Your Gender
@@ -317,17 +324,22 @@ const SignUp = () => {
                 </svg>
               </div>
             </div>
+            {errors.gender && (
+              <p className="text-xs font-semibold text-red-600 px-2 py-1 rounded mt-1">
+                {errors.gender.message}*
+              </p>
+            )}
           </div>
         </div>
         <div className="flex justify-center mt-4">
           <button
             disabled={loader}
             type="submit"
-            className="bg-customRed font-semibold text-white  bg-gradient-to-bl from-primary to bg-red-600 sm:w-[35%]  hover:border hover:border-primary hover:bg-black   w-[50%] py-2 rounded-full  transition-colors duration-100 my-3 cursor-pointer"
+            className="font-semibold text-white bg-gradient-to-bl from-primary to-red-600 sm:w-[35%] w-[50%] py-2 rounded-full hover:border hover:border-primary hover:bg-black transition-colors duration-100 my-3 cursor-pointer"
           >
             {loader ? "Loading..." : "SignUp"}
           </button>
-        </div>
+        </div>{" "}
       </form>
     </div>
   );

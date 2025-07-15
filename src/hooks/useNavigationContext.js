@@ -47,7 +47,14 @@ export const useNavigationContext = () => {
         // Reset password page should go back to regular login
         navigate('/login');
       } else if (navigationContext.fromPage === 'resetpassword') {
-        navigate('/reset-password');
+        // Navigate back to Reset Password with state parameters
+        const { otpSent, text } = navigationContext.pageState || {};
+        const params = new URLSearchParams();
+        if (otpSent) params.set('otpSent', 'true');
+        if (text) params.set('text', text);
+        
+        const queryString = params.toString();
+        navigate(`/reset-password${queryString ? `?${queryString}` : ''}`);
       } else if (navigationContext.fromPage === 'login') {
         navigate('/login');
       } else {
