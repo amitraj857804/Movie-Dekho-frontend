@@ -84,7 +84,7 @@ function Login({ onSwitchTab, onClose, isModal = false,}) {
         className={`w-full ${isModal ? 'py-6 px-4 sm:py-8 sm:px-8 lg:px-12 overflow-hidden' : 'py-8 px-4 sm:px-8'} rounded-md`}
       >
          {/* Go Back Button */}
-                  <div className="flex justify-start">
+                  <div className="flex justify-start -mt-2 -mb-1">
                     <button
                       type="button"
                       onClick={ () => onClose() }

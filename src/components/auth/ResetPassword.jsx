@@ -227,7 +227,7 @@ function ResetPassword({ onSwitchTab, onClose, isModal = false }) {
           } rounded-md`}
         >
           {/* Go Back Button - show in both modal and page mode */}
-          <div className="flex justify-start">
+          <div className="flex justify-start -mt-2 -mb-1">
             <button
               type="button"
               onClick={isModal ? () => onSwitchTab("login") : handleGoBack}

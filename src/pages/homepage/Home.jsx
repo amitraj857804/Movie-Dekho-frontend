@@ -11,9 +11,10 @@ function Home() {
     closeAuthModal, 
     switchAuthTab 
   } = useAuthModalContext();
-
+console.log(isAuthModalOpen); 
   return (
-    <div className="min-h-screen bg-gray-900 custom-scrollbar">
+
+    <div className={`min-h-screen bg-gray-900 custom-scrollbar `}>
       {/* Hero Section with Movie Carousel */}
       <section className="relative">
         <MovieCarousel />

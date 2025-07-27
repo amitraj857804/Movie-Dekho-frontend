@@ -7,7 +7,7 @@ export const useAuthModal = () => {
   const openAuthModal = (tab = 'login') => {
 
     setAuthModalTab(tab);
-    setIsAuthModalOpen(true);
+    setIsAuthModalOpen((prev)=> !prev );
 
     // Simple overflow hidden approach
     document.body.style.overflow = 'hidden';

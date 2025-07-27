@@ -201,7 +201,7 @@ function OtpLogin({ onSwitchTab, onClose, isModal = false }) {
           } rounded-md`}
         >
           {/* Go Back Button */}
-          <div className="flex justify-start ">
+          <div className="flex justify-start -mt-2 -mb-1 ">
             <button
               type="button"
               onClick={() => onSwitchTab("login")}

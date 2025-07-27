@@ -92,17 +92,25 @@ const AuthModal = ({ isOpen, onClose, activeTab = 'login', onTabChange }) => {
   };
 
   const modalContent = (
-    <div 
-      className="fixed inset-0 z-[9999] flex items-center justify-center px-2 pt-18 pb-8 sm:px-4 max-sm:items-center"
-      onClick={handleBackdropClick}
-    >
-      <div className="relative max-w-lg mt-4 mx-auto sm:min-h-full sm:flex sm:items-center sm:justify-center">
-        {/* Modal content - Responsive width, dynamic height, no scrollbar */}
-        <div className="bg-gray-900 bg-opacity-95 rounded-xl shadow-2xl border border-gray-600 border-opacity-50">
-          {renderContent()}
+    <>
+      {/* Overlay only for content below navbar - adjust top value based on your navbar height */}
+      <div 
+        className="fixed top-16 left-0 right-0 bottom-0 z-[9998] bg-transparent backdrop-blur-sm"
+        onClick={handleBackdropClick}
+      />
+      
+      {/* Modal container with higher z-index */}
+      <div 
+        className="fixed inset-0 z-[9999] flex items-center justify-center px-2 pt-18 pb-8 sm:px-4 max-sm:items-center pointer-events-none"
+      >
+        <div className="relative max-w-lg mt-4 mx-auto sm:min-h-full sm:flex sm:items-center sm:justify-center pointer-events-auto">
+          {/* Modal content - Responsive width, dynamic height, no scrollbar */}
+          <div className="bg-gray-900 bg-opacity-95 rounded-xl shadow-2xl border border-gray-600 border-opacity-50">
+            {renderContent()}
+          </div>
         </div>
       </div>
-    </div>
+    </>
   );
 
   // Use portal to render at document body level

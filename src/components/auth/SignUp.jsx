@@ -85,7 +85,7 @@ const SignUp = ({ onSwitchTab, onClose, isModal = false, modalNavigationContext 
       >
         {/* Go Back Button - show only when coming from otplogin or resetpassword */}
         {isModal && (
-          <div className="flex justify-start ">
+          <div className="flex justify-start -mt-2 -mb-1">
             <button
               type="button"
               onClick={handleBackNavigation}
