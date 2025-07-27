@@ -35,12 +35,7 @@ const initialState = {
         : null,
     userName: null,
     userNameLoading: false,
-    previousPage: null,
-    navigationContext: {
-        fromPage: null,
-        pageState: null,
-        isDirectEntry: true
-    }
+   
 }
 
 export const tokenSlice = createSlice({
@@ -60,25 +55,7 @@ export const tokenSlice = createSlice({
             state.token = null;
             localStorage.removeItem("JWT_TOKEN");
         },
-        setPreviousPage: (state, action) => {
-            state.previousPage = action.payload;
-        },
-        clearPreviousPage: (state) => {
-            state.previousPage = null;
-        },
-        setNavigationContext: (state, action) => {
-            state.navigationContext = {
-                ...state.navigationContext,
-                ...action.payload
-            };
-        },
-        clearNavigationContext: (state) => {
-            state.navigationContext = {
-                fromPage: null,
-                pageState: null,
-                isDirectEntry: true
-            };
-        },
+       
         setUserName: (state, action) => {
             state.userName = action.payload;
         },
@@ -112,17 +89,11 @@ const authStore = configureStore({
 export const {
     setToken,
     clearToken,
-    setPreviousPage,
-    clearPreviousPage,
-    setNavigationContext,
-    clearNavigationContext,
     setUserName,
     clearUserName,
 } = tokenSlice.actions;
 
 export const selectToken = (state) => state.auth.token;
-export const selectPreviousPage = (state) => state.auth.previousPage;
-export const selectNavigationContext = (state) => state.auth.navigationContext;
 export const selectUsername = (state) => state.auth.userName;
 export const selectUsernameLoading = (state) => state.auth.userNameLoading;
 

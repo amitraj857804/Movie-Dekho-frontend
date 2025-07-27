@@ -1,23 +1,22 @@
 import React, { useEffect, useState } from "react";
-import InputField from "./inputField/InputField";
-import {  useNavigate } from "react-router-dom";
+import InputField from "../inputField/InputField";
 import toast from "react-hot-toast";
 import { useForm } from "react-hook-form";
 import { RiLockPasswordFill } from "react-icons/ri";
-import { FaUser, FaEye, FaEyeSlash, FaArrowLeft } from "react-icons/fa";
-import api from "../api/api";
-import { useDispatch, useSelector } from "react-redux";
-import { setToken, selectToken, setPreviousPage, setNavigationContext, selectNavigationContext } from "./store/authStore";
-import { useNavigationContext } from "../hooks/useNavigationContext";
+import { FaUser, FaEye, FaEyeSlash} from "react-icons/fa";
+import api from "../../api/api";
+import { useSelector,useDispatch } from "react-redux";
+import { setToken, selectToken } from "../store/authStore";
+import { FaArrowLeft } from "react-icons/fa";
 
-function Login() {
-  const navigate = useNavigate();
+function Login({ onSwitchTab, onClose, isModal = false,}) {
+  
   const [loader, setLoader] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [onLogin, setOnLogin] = useState(true);
-  const dispatch = useDispatch();
   const token = useSelector(selectToken);
-  const { goBack: handleGoBack, getBackButtonText } = useNavigationContext();
+  const dispatch = useDispatch();
+
 
   const {
     register,
@@ -35,86 +34,67 @@ function Login() {
 
   useEffect(() => {
     if (token) {
-      navigate("/");
+      if (isModal && onClose) {
+        onClose();
+      } else {
+        navigate("/");
+      }
     }
-  }, [token]);
+  }, [token, isModal, onClose]);
 
-  // Handle direct navigation to login page
-  useEffect(() => {
-    // Always reset navigation context when landing on login page
-    // This ensures users can go back to home from login
-    dispatch(setNavigationContext({
-      fromPage: null,
-      pageState: null,
-      isDirectEntry: true
-    }));
-  }, [dispatch]); // Remove navigationContext.fromPage dependency to always reset
 
   const loginHandler = async (data) => {
     setLoader(true);
     try {
+      
       const { data: response } = await api.post("/api/auth/login", data);
 
       dispatch(setToken(response.token));
       reset();
       toast.success(" Login Successful!");
     } catch (error) {
-      toast.error(error.response.data || "Login failed. Please try again.");
+      console.log(error);
+      toast.error(error.response || "Login failed. Please try again.");
     } finally {
       setLoader(false);
     }
   };
 
   const navigateToResetPassword = () => {
-    // Set navigation context when going to reset password
-    dispatch(setNavigationContext({
-      fromPage: 'login',
-      pageState: null,
-      isDirectEntry: false
-    }));
-    navigate("/reset-password");
+    if (isModal && onSwitchTab) {
+      onSwitchTab('resetpassword');
+    } 
   };
 
   const navigateToOtpLogin = () => {
-    // Set navigation context when going to OTP login
-    dispatch(setNavigationContext({
-      fromPage: 'login',
-      pageState: null,
-      isDirectEntry: false
-    }));
-    navigate("/login-with-otp");
+    if (isModal && onSwitchTab) {
+      onSwitchTab('otplogin');
+    } 
   };
 
   const navigateToSignUp = () => {
-    // Store navigation context - this is a direct entry point
-    dispatch(setNavigationContext({
-      fromPage: null,
-      pageState: null,
-      isDirectEntry: true // User came directly to login, so going back should go to home
-    }));
-    
-    dispatch(setPreviousPage('/login'));
-    navigate("/SignUp");
-    setOnLogin(false);
+    if (isModal && onSwitchTab) {
+      onSwitchTab('signup');
+    } 
   };
   return (
-    <div className="sm:w-[550px] sm:m-4  mt-20 sm:my-28 flex items-center justify-center  sm:flex shadow-2xl shadow-[#000000] rounded-lg ">
+    <div className={`${isModal ? 'w-full overflow-hidden' : 'sm:w-[550px] sm:m-4 mt-20 sm:my-28'} flex items-center justify-center sm:flex ${!isModal ? 'shadow-2xl shadow-[#000000] rounded-lg' : ''}`}>
       <form
         onSubmit={handleSubmit(loginHandler)}
-        className=" w-full py-8 px-4 sm:px-8 rounded-md "
+        className={`w-full ${isModal ? 'py-6 px-4 sm:py-8 sm:px-8 lg:px-12 overflow-hidden' : 'py-8 px-4 sm:px-8'} rounded-md`}
       >
-        {/* Go Back Button */}
-        <div className="flex justify-start mb-2">
-          <button
-            type="button"
-            onClick={handleGoBack}
-            className="flex items-center gap-2 text-primary hover:!text-white transition-colors duration-200 text-sm font-medium cursor-pointer"
-          >
-            <FaArrowLeft className="text-xs" />
-            {getBackButtonText()}
-          </button>
-        </div>
-
+         {/* Go Back Button */}
+                  <div className="flex justify-start">
+                    <button
+                      type="button"
+                      onClick={ () => onClose() }
+                      className="flex items-center gap-2 text-primary hover:!text-white transition-colors duration-200 text-sm font-medium cursor-pointer"
+                    >
+                      <FaArrowLeft className="text-lg" />
+                   
+                    </button>
+                  </div>
+      
         <div className="flex justify-around mb-4">
           <h1
             className={`text-center px-2 text-primary font-bold lg:text-2xl text-xl cursor-pointer relative
@@ -150,7 +130,7 @@ function Login() {
 
         <div className="flex flex-col  gap-2 justify-center items-center">
           <div
-            className={`sm:flex  sm:w-[50%] w-[80%] items-center justify-between gap-3 relative ${
+            className={`sm:flex  sm:w-[70%] w-[90%] items-center justify-between gap-3 relative ${
               errors.fullname?.message ? "sm:mb-6" : ""
             }`}
           >
@@ -182,7 +162,7 @@ function Login() {
             </div>
           </div>
           <div
-            className={`sm:flex sm:w-[50%] w-[80%]  items-center justify-center gap-3 relative ${
+            className={`sm:flex sm:w-[70%] w-[90%]  items-center justify-center gap-3 relative ${
               errors.password?.message ? "sm:mb-6" : ""
             }`}
           >
@@ -236,7 +216,7 @@ function Login() {
           <button
             disabled={loader}
             type="submit"
-            className="  font-semibold text-white  bg-gradient-to-bl from-primary to bg-red-600  hover:border hover:border-primary hover:bg-black   sm:w-[35%] w-[50%] py-2 rounded-full transition-colors duration-100 my-3 cursor-pointer"
+            className="  font-semibold text-white  bg-gradient-to-bl from-primary to bg-red-600  hover:border hover:border-primary hover:bg-black   sm:w-[40%] w-[60%] py-2 rounded-full transition-colors duration-100 my-3 cursor-pointer"
           >
             {loader ? "Loading..." : "Login"}
           </button>

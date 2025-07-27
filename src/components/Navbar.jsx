@@ -4,6 +4,8 @@ import { MenuIcon, SearchIcon, XIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import toast from "react-hot-toast";
+import { useAuthModalContext } from "../hooks/useAuthModalContext";
+
 import {
   fetchUserName,
   selectUsername,
@@ -21,13 +23,14 @@ function Navbar() {
   const username = useSelector(selectUsername);
   const token = useSelector(selectToken);
   const isLoading = useSelector(selectUsernameLoading);
+  const { openAuthModal } = useAuthModalContext();
 
   useEffect(() => {
     if (token && !username) {
       dispatch(fetchUserName())
         .unwrap() // This allows us to handle the promise
         .then((username) => {
-          console.log("Username fetched successfully:", username);
+          // Username fetched successfully
         })
         .catch((error) => {
           dispatch(clearToken());
@@ -47,8 +50,9 @@ function Navbar() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  const signUpHandler = () => {
-    navigate("/login");
+  const loginHandler = () => {
+    
+    openAuthModal("login");
   };
 
   const logoutHandler = () => {
@@ -218,7 +222,7 @@ function Navbar() {
               ? "hover:!bg-black/90 hover:lg:!bg-white/20"
               : "hover:!bg-black/70 hover:lg:!bg-white/10"
           }`}
-            onClick={signUpHandler}
+            onClick={loginHandler}
           >
             Login/Signup
           </button>

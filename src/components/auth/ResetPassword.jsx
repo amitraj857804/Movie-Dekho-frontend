@@ -1,32 +1,17 @@
-import React, { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useForm } from "react-hook-form";
-import InputField from "./inputField/InputField";
-import { useNavigate, useLocation } from "react-router-dom";
-import { useDispatch, useSelector } from "react-redux";
-import {
-  selectToken,
-  setToken,
-  setPreviousPage,
-  setNavigationContext,
-  selectNavigationContext,
-} from "./store/authStore";
-import { useNavigationContext } from "../hooks/useNavigationContext";
-import { FaArrowLeft } from "react-icons/fa";
-import api from "../api/api";
+import InputField from "../inputField/InputField";
+import api from "../../api/api";
 import toast from "react-hot-toast";
+import { FaArrowLeft } from "react-icons/fa";
 
-function ResetPassword() {
-  const navigate = useNavigate();
-  const location = useLocation();
+function ResetPassword({ onSwitchTab, onClose, isModal = false }) {
   const [loader, setLoader] = useState(false);
   const [otpSent, setOtpSent] = useState(false);
   const [onLogin, setOnLogin] = useState(true);
   const [resendTimer, setResendTimer] = useState(0);
   const [canResend, setCanResend] = useState(true);
   const intervalRef = useRef(null);
-  const dispatch = useDispatch();
-  const navigationContext = useSelector(selectNavigationContext);
-  const { goBack: handleGoBack, getBackButtonText } = useNavigationContext();
 
   const {
     register,
@@ -45,48 +30,11 @@ function ResetPassword() {
     mode: "onChange",
   });
 
-  // Restore state from URL parameters (when returning from SignUp)
-  useEffect(() => {
-    const urlParams = new URLSearchParams(location.search);
-    const restoredOtpSent = urlParams.get("otpSent") === "true";
-    const restoredText = urlParams.get("text");
-
-    if (restoredOtpSent) {
-      setOtpSent(true);
-      // Reset timer when returning from signup, allow immediate resend
-      setCanResend(true);
-      setResendTimer(0);
+  const navigateToSignUp = () => {
+    if (isModal && onSwitchTab) {
+      onSwitchTab("signup", { fromPage: "resetpassword" });
     }
-
-    if (restoredText) {
-      // Use setValue to update the form field
-      reset({ text: restoredText, otp: "", newPassword: "" });
-    }
-
-    // Clear URL parameters after restoring state
-    if (urlParams.has("otpSent") || urlParams.has("text")) {
-      navigate("/reset-password", { replace: true });
-    }
-  }, [location.search, reset, navigate]);
-
-  // Handle direct navigation to OTP login page
-  useEffect(() => {
-    // If no navigation context is set and no URL params, this is a direct entry
-    const urlParams = new URLSearchParams(location.search);
-    if (
-      !navigationContext.fromPage &&
-      !urlParams.has("otpSent") &&
-      !urlParams.has("text")
-    ) {
-      dispatch(
-        setNavigationContext({
-          fromPage: "resetpassword-direct", // Reset password page should go back to login
-          pageState: null,
-          isDirectEntry: false, // We want to go back to login, not home
-        })
-      );
-    }
-  }, [navigationContext.fromPage, location.search, dispatch]);
+  };
 
   // Timer logic for OTP resend - Most efficient version
   useEffect(() => {
@@ -125,43 +73,44 @@ function ResetPassword() {
     setResendTimer(seconds);
   };
 
-  const navigateToSignUp = () => {
-    // Store detailed navigation context
-    dispatch(
-      setNavigationContext({
-        fromPage: "resetpassword",
-        pageState: {
-          otpSent,
-          text: getValues("text"),
-        },
-        isDirectEntry: false,
-      })
-    );
-
-    // Also set simple previous page for compatibility
-    dispatch(setPreviousPage("/reset-password"));
-
-    navigate("/SignUp");
-    setOnLogin(false);
-  };
-
   const sendOtpHandler = async (data) => {
     setLoader(true);
     try {
-      const response = await api.post("api/auth/forgot-password", {
-        email: data.text || "",
-        phoneNumber: data.text || "",
-      });
+      // Determine if the input is email or phone number
+      const inputValue = data.text.trim();
+      const isEmail = inputValue.includes("@");
+
+      const payload = isEmail
+        ? { email: inputValue }
+        : { phoneNumber: inputValue };
+
+      const response = await api.post("api/auth/forgot-password", payload);
 
       toast.success("OTP sent successfully!");
       setOtpSent(true);
-      startResendTimer(30); // Set timer for 30 seconds
+      startResendTimer(30);
       setTimeout(() => {
         setFocus("otp");
       }, 100);
     } catch (error) {
-      console.log(error);
-      toast.error(error.response?.data || "Failed to send OTP. Try again");
+      const errorMessage =
+        error.response?.data?.message ||
+        error.response?.data ||
+        "Failed to send OTP. Please try again.";
+
+      // Handle specific error cases
+      if (
+        errorMessage.toLowerCase().includes("user not found") ||
+        errorMessage.toLowerCase().includes("email not found") ||
+        errorMessage.toLowerCase().includes("phone not found") ||
+        errorMessage.toLowerCase().includes("not registered")
+      ) {
+        toast.error(
+          "This email/phone is not registered. Please check your details or sign up for a new account."
+        );
+      } else {
+        toast.error(errorMessage);
+      }
     } finally {
       setLoader(false);
     }
@@ -170,14 +119,29 @@ function ResetPassword() {
   const verifyOtpHandler = async (data) => {
     setLoader(true);
     try {
-      const { data: response } = await api.post("api/auth/reset-password", {
-        email: data.text,
+      const inputValue = data.text.trim();
+      const isEmail = inputValue.includes("@");
+
+      const payload = {
         otp: data.otp,
         newPassword: data.newPassword,
-      });
+      };
+
+      if (isEmail) {
+        payload.email = inputValue;
+      } else {
+        payload.phoneNumber = inputValue;
+      }
+
+      const { data: response } = await api.post(
+        "api/auth/reset-password",
+        payload
+      );
 
       toast.success("Password reset successful!");
-      navigate("/login");
+      if (isModal && onSwitchTab) {
+        onSwitchTab("login");
+      }
     } catch (error) {
       const errorMessage =
         error.response?.data?.message ||
@@ -221,6 +185,7 @@ function ResetPassword() {
     // Use currentValues to ensure we get all values
     const formData = {
       text: currentValues.text || data.text,
+
       otp: currentValues.otp || data.otp,
       newPassword: currentValues.newPassword || data.newPassword,
     };
@@ -243,21 +208,33 @@ function ResetPassword() {
   };
 
   return (
-    <div className="w-full flex items-center justify-center ">
-      <div className="sm:w-[550px] sm:m-4  mt-20 sm:my-28 flex items-center justify-center  sm:flex shadow-2xl shadow-[#000000] rounded-lg ">
+    <div className="w-full flex items-center justify-center min-w-[400px]:">
+      <div
+        className={`${
+          isModal
+            ? "w-full overflow-hidden"
+            : "sm:w-[550px] sm:m-4 mt-20 sm:my-28"
+        } flex items-center justify-center sm:flex ${
+          !isModal ? "shadow-2xl shadow-[#000000] rounded-lg" : ""
+        }`}
+      >
         <form
           onSubmit={handleSubmit(otpHandler)}
-          className=" w-full py-8 px-4 sm:px-8 rounded-md "
+          className={`w-full ${
+            isModal
+              ? "py-6 px-4 sm:py-8 sm:px-8 lg:px-12 overflow-hidden"
+              : "py-8 px-4 sm:px-8"
+          } rounded-md`}
         >
-          {/* Go Back Button */}
-          <div className="flex justify-start mb-2">
+          {/* Go Back Button - show in both modal and page mode */}
+          <div className="flex justify-start">
             <button
               type="button"
-              onClick={handleGoBack}
+              onClick={isModal ? () => onSwitchTab("login") : handleGoBack}
               className="flex items-center gap-2 text-primary hover:!text-white transition-colors duration-200 text-sm font-medium cursor-pointer"
             >
-              <FaArrowLeft className="text-xs" />
-              {getBackButtonText()}
+              <FaArrowLeft className="text-lg" />
+             
             </button>
           </div>
 
@@ -293,15 +270,15 @@ function ResetPassword() {
 
           <div className="flex flex-col  gap-2 justify-center items-center">
             <div
-              className={`sm:flex  sm:w-[50%] w-[80%] items-center justify-between gap-2 relative `}
+              className={`sm:flex  sm:w-[70%] w-[90%] items-center justify-between gap-2 relative `}
             >
               <div className={`flex-1 mt-2 `}>
                 <InputField
                   required
                   id="text"
                   type="text"
-                  message="Email/mobile required"
-                  placeholder="Email/mobile"
+                  message="Email/phone required"
+                  placeholder="Email/mobile no."
                   register={register}
                   errors={errors}
                   className={" mb-1"}
@@ -315,7 +292,7 @@ function ResetPassword() {
                   onClick={changeEmail}
                   className="text-primary text-sm hover:underline  whitespace-nowrap cursor-pointer"
                 >
-                  Change Email
+                  Change Email/Phone
                 </button>
               )}
             </div>
@@ -325,7 +302,7 @@ function ResetPassword() {
               </p>
             )}
             {otpSent && (
-              <div className="sm:w-[50%] w-[80%] flex flex-col sm:flex-row items-center justify-between gap-2 relative mt-2">
+              <div className="sm:w-[70%] w-[90%] flex flex-col sm:flex-row items-center justify-between gap-2 relative mt-2">
                 <div className="flex-1 w-full sm:w-[65%]">
                   <InputField
                     required={true}
@@ -338,7 +315,7 @@ function ResetPassword() {
                     className="mb-1"
                   />
                 </div>
-                <div className="flex-1 w-full sm:w-[35%]">
+                <div className="flex-1 w-full sm:w-[25%]">
                   <InputField
                     required={true}
                     id="otp"
@@ -363,12 +340,12 @@ function ResetPassword() {
                 {errors.newPassword?.message}*
               </p>
             )}
-            {otpSent && <div></div>}
+
             <div className="flex justify-center w-full gap-3">
               <button
                 disabled={loader}
                 type="submit"
-                className="font-semibold text-sm text-white bg-gradient-to-bl from-primary to bg-red-600 sm:w-[30%] w-[40%] py-2 rounded-full  hover:border hover:border-primary hover:bg-black transition-colors duration-100 my-3 cursor-pointer"
+                className="font-semibold text-sm text-white bg-gradient-to-bl from-primary to bg-red-600 sm:w-[35%] w-[50%] py-2 rounded-full  hover:border hover:border-primary hover:bg-black transition-colors duration-100 my-3 cursor-pointer"
               >
                 {loader
                   ? "Loading..."
@@ -382,9 +359,9 @@ function ResetPassword() {
                   type="button"
                   onClick={resendOtp}
                   disabled={loader || !canResend}
-                  className={`font-semibold text-sm border border-primary sm:w-[28%] w-[40%] py-2 rounded-full transition-colors duration-200 my-3 ${
+                  className={`font-semibold text-sm border border-primary sm:w-[32%] w-[45%] py-2 rounded-full transition-colors duration-200 my-3 ${
                     canResend && !loader
-                      ? "text-primary bg-transparent hover:bg-primary hover:text-white cursor-pointer"
+                      ? "text-primary bg-transparent hover:bg-primary hover:!text-white cursor-pointer"
                       : "text-gray-500 bg-gray-200 cursor-not-allowed"
                   }`}
                 >

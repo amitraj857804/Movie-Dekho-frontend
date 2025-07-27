@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { ChevronLeftIcon, ChevronRightIcon, PlayIcon, StarIcon } from '@heroicons/react/24/solid';
-import { dummyShowsData } from '../assets/assets';
+import { dummyShowsData } from '../../assets/assets';
 
 const MovieCarousel = () => {
   const [currentIndex, setCurrentIndex] = useState(0);

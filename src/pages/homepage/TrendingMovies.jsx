@@ -1,6 +1,6 @@
 import React from 'react';
 import { StarIcon, CalendarIcon } from '@heroicons/react/24/solid';
-import { dummyShowsData } from '../assets/assets';
+import { dummyShowsData } from '../../assets/assets';
 
 const TrendingMovies = () => {
   // Get movies for trending section (excluding the first 5 used in carousel)

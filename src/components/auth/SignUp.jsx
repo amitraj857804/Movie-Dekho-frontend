@@ -1,13 +1,6 @@
-import React, { useState, useEffect } from "react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
-import InputField from "./inputField/InputField";
-import { useNavigate } from "react-router-dom";
-import { useDispatch, useSelector } from "react-redux";
-import {
-  selectNavigationContext,
-  setNavigationContext,
-} from "./store/authStore";
-import { useNavigationContext } from "../hooks/useNavigationContext";
+import InputField from "../inputField/InputField";
 import toast from "react-hot-toast";
 import {
   FaUser,
@@ -19,13 +12,9 @@ import {
 import { BsGenderMale } from "react-icons/bs";
 import { MdEmail } from "react-icons/md";
 import { RiLockPasswordFill } from "react-icons/ri";
-import api from "../api/api";
+import api from "../../api/api";
 
-const SignUp = () => {
-  const navigate = useNavigate();
-  const dispatch = useDispatch();
-  const navigationContext = useSelector(selectNavigationContext);
-  const { goBack: handleGoBack, getBackButtonText } = useNavigationContext();
+const SignUp = ({ onSwitchTab, onClose, isModal = false, modalNavigationContext }) => {
   const [loader, setLoader] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
@@ -45,31 +34,16 @@ const SignUp = () => {
     mode: "onTouched",
   });
 
-  // Handle direct navigation to signup page
-  useEffect(() => {
-    // If no navigation context is set, this is a direct entry
-    if (!navigationContext.fromPage) {
-      dispatch(
-        setNavigationContext({
-          fromPage: null,
-          pageState: null,
-          isDirectEntry: true,
-        })
-      );
-    }
-  }, [navigationContext.fromPage, dispatch]);
-
   const registerHandler = async (data) => {
-    console.log(data);
     setLoader(true);
     try {
       const { data: response } = await api.post("/api/auth/register", data);
-      console.log(response);
       reset();
-      navigate("/login");
+      if (isModal && onSwitchTab) {
+        onSwitchTab("login");
+      }
       toast.success("SignedUp Successfully!");
     } catch (error) {
-      console.log(error);
       toast.error(
         error.response?.data?.message ||
           error.response?.data ||
@@ -80,27 +54,48 @@ const SignUp = () => {
     }
   };
 
+  const handleBackNavigation = () => {
+    if (isModal && modalNavigationContext?.fromPage == "otplogin" || modalNavigationContext?.fromPage === "resetpassword"  ) {
+      // Navigate back to the page user came from
+      onSwitchTab(modalNavigationContext.fromPage);
+    }else{
+      onClose();
+    }
+  };
+
   const navigateToLogin = () => {
-    navigate("/login");
+    if (isModal && onSwitchTab) {
+      onSwitchTab("login");
+    }
   };
 
   return (
-    <div className="sm:w-[550px] sm:m-4 mt-20 sm:my-28 flex items-center justify-center sm:flex shadow-2xl shadow-[#000000] rounded-lg">
+    <div
+      className={` flex items-center justify-center sm:flex ${
+        !isModal ? "shadow-2xl shadow-[#000000] rounded-lg" : ""
+      }`}
+    >
       <form
         onSubmit={handleSubmit(registerHandler)}
-        className="w-full py-8 px-4 sm:px-8 rounded-md"
+        className={`w-full ${
+          isModal
+            ? "py-3 px-4 sm:py-8 sm:px-8 lg:px-12 overflow-hidden"
+            : "py-4 px-4 sm:px-8"
+        } rounded-md`}
       >
-        {/* Go Back Button */}
-        <div className="flex justify-start mb-2">
-          <button
-            type="button"
-            onClick={handleGoBack}
-            className="flex items-center gap-2 text-primary hover:!text-white transition-colors duration-200 text-sm font-medium cursor-pointer"
-          >
-            <FaArrowLeft className="text-xs" />
-            {getBackButtonText()}
-          </button>
-        </div>
+        {/* Go Back Button - show only when coming from otplogin or resetpassword */}
+        {isModal && (
+          <div className="flex justify-start ">
+            <button
+              type="button"
+              onClick={handleBackNavigation}
+              className="flex items-center gap-2 text-primary hover:!text-white transition-colors duration-200 text-sm font-medium cursor-pointer"
+            >
+              <FaArrowLeft className="text-lg" />
+             
+            </button>
+          </div>
+        )}
         <div className="flex justify-around mb-4">
           <h1
             className="text-center font-serif text-primary font-bold lg:text-2xl text-xl cursor-pointer"
@@ -116,27 +111,29 @@ const SignUp = () => {
           </h1>
         </div>
         <hr className="mt-2 mb-5 border-0 h-px bg-gradient-to-r from-transparent via-primary to-transparent" />
-        <div className="sm:max-w-lg sm:px-4 text-center flex items-center justify-center py-2">
-          <div className=" flex flex-col items-center justify-center">
-            <span className="text-2xl font-bold">Become Member</span>
-            <p>
+        <div className="text-center flex items-center justify-center py-1 max-sm:py-0.5 sm:py-2">
+          <div className="flex flex-col items-center justify-center max-w-md">
+            <span className="text-md max-sm:text-lg sm:text-xl lg:text-2xl font-bold">
+              Become Member
+            </span>
+            <p className="text-md max-sm:text-md sm:text-md lg:text-base px-2">
               Get access to exclusive discounts and food combos when you sign in
               / sign up and book your tickets.
             </p>
           </div>
         </div>
-        <div className="flex flex-col text-white gap-2">
+        <div className="flex flex-col text-white gap-0.5 max-sm:gap-0 sm:gap-1 lg:gap-2 px-3">
           <div
-            className={`sm:flex items-center justify-between gap-3 relative ${
+            className={`flex flex-col sm:flex-row items-start sm:items-center justify-between gap-0.5 mt-2 sm:mt-0.5 max-sm:gap-0 sm:gap-1 lg:gap-2 xl:gap-3 relative ${
               errors.username?.message || errors.email?.message ? "sm:mb-6" : ""
             }`}
           >
-            <div className="flex-1">
+            <div className="w-full sm:flex-1 ">
               <div className="flex items-center gap-2">
                 <FaUser className="text-red-200 text-xl opacity-[0.5]" />
                 <label
                   htmlFor="username"
-                  className="text-gray-50 font-semibold"
+                  className="text-gray-50 font-semibold text-sm sm:text-base"
                 >
                   Full Name
                 </label>
@@ -148,17 +145,20 @@ const SignUp = () => {
                 placeholder="Full Name"
                 register={register}
                 errors={errors}
-                className={" mb-1"}
+                className={" mb-1 "}
                 showError={true}
                 mobileShowError={true}
                 required={true}
               />
             </div>
 
-            <div className="flex-1">
+            <div className="w-full sm:flex-1">
               <div className="flex items-center gap-2">
                 <MdEmail className="text-red-200 text-xl opacity-[0.5]" />
-                <label htmlFor="email" className="text-gray-50 font-semibold">
+                <label
+                  htmlFor="email"
+                  className="text-gray-50 font-semibold text-sm sm:text-base"
+                >
                   Email
                 </label>
               </div>
@@ -178,16 +178,16 @@ const SignUp = () => {
             {/* Row-level error display - only on sm+ screens */}
             {(errors.username?.message || errors.email?.message) && (
               <div className="absolute -bottom-5 left-0 right-0 sm:flex gap-3 hidden">
-                <div className="flex-1">
+                <div className="flex-1 min-w-0">
                   {errors.username?.message && (
-                    <p className="text-xs font-semibold text-red-600 px-2 py-1 rounded">
+                    <p className="text-xs font-semibold text-red-600 px-2 py-1 rounded truncate">
                       {errors.username.message}*
                     </p>
                   )}
                 </div>
-                <div className="flex-1">
+                <div className="flex-1 min-w-0">
                   {errors.email?.message && (
-                    <p className="text-xs font-semibold text-red-600  px-2 py-1 rounded">
+                    <p className="text-xs font-semibold text-red-600  px-2 py-1 rounded truncate">
                       {errors.email.message}*
                     </p>
                   )}
@@ -197,14 +197,17 @@ const SignUp = () => {
           </div>
 
           <div
-            className={`sm:flex items-center justify-between gap-3 relative ${
+            className={`flex flex-col sm:flex-row items-start sm:items-center justify-between gap-0.5 max-sm:gap-0 sm:gap-1 lg:gap-2 xl:gap-3 relative ${
               errors.phone?.message || errors.password?.message ? "sm:mb-6" : ""
             }`}
           >
-            <div className="flex-1">
+            <div className="w-full sm:flex-1 mt-1">
               <div className="flex items-center gap-2">
                 <FaPhoneSquareAlt className="text-red-200 text-xl opacity-[0.5]" />
-                <label htmlFor="phone" className="text-gray-50 font-semibold">
+                <label
+                  htmlFor="phone"
+                  className="text-gray-50 font-semibold text-sm sm:text-base"
+                >
                   Mobile number
                 </label>
               </div>
@@ -223,12 +226,12 @@ const SignUp = () => {
                 required={true}
               />
             </div>
-            <div className="flex-1">
+            <div className="w-full sm:flex-1 ">
               <div className="flex items-center gap-2">
                 <RiLockPasswordFill className="text-red-200 text-xl opacity-[0.5] " />
                 <label
                   htmlFor="password"
-                  className="text-gray-50 font-semibold"
+                  className="text-gray-50 font-semibold text-sm sm:text-base"
                 >
                   Password
                 </label>
@@ -262,16 +265,16 @@ const SignUp = () => {
             {/* Row-level error display - only on sm+ screens */}
             {(errors.phone?.message || errors.password?.message) && (
               <div className="absolute -bottom-5 left-0 right-0 sm:flex gap-3 hidden">
-                <div className="flex-1">
+                <div className="flex-1 min-w-0">
                   {errors.phone?.message && (
-                    <p className="text-xs font-semibold text-red-600 px-2 py-1 rounded">
+                    <p className="text-xs font-semibold text-red-600 px-2 py-1 rounded truncate">
                       {errors.phone.message}*
                     </p>
                   )}
                 </div>
-                <div className="flex-1">
+                <div className="flex-1 min-w-0">
                   {errors.password?.message && (
-                    <p className="text-xs font-semibold text-red-600 0 px-2 py-1 rounded">
+                    <p className="text-xs font-semibold text-red-600 0 px-2 py-1 rounded truncate">
                       {errors.password.message}*
                     </p>
                   )}
@@ -280,18 +283,21 @@ const SignUp = () => {
             )}
           </div>
 
-          <div className="sm:max-w-1/2">
+          <div className="w-full sm:max-w-xs mt-2 mb-0.5">
             <div className="flex items-center gap-2 ">
               <BsGenderMale className="text-red-200 text-xl opacity-[0.5] " />
-              <label htmlFor="gender" className="text-gray-50 font-semibold">
+              <label
+                htmlFor="gender"
+                className="text-gray-50 font-semibold text-sm sm:text-base"
+              >
                 Gender
               </label>
             </div>
-            <div className="relative">
+            <div className="relative max-w-[75%]">
               <select
                 id="gender"
                 name="gender"
-                className="mt-1 block w-full pl-3 pr-12 rounded-full border border-gray-300 text-gray-50 bg-gray-900 py-2 shadow-sm focus:border-gray-500 focus:outline-none focus:ring-blue-500 appearance-none"
+                className="mt-1 block w-full  pl-3 pr-12 rounded-full border border-gray-300 text-gray-50 bg-gray-900 py-2 shadow-sm focus:border-gray-500 focus:outline-none focus:ring-blue-500 appearance-none"
                 {...register("gender", {
                   required: { value: true, message: "*Gender required" },
                 })}
@@ -331,11 +337,11 @@ const SignUp = () => {
             )}
           </div>
         </div>
-        <div className="flex justify-center mt-4">
+        <div className="flex justify-center mt-1 max-sm:mt-2.5 sm:mt-2.5 lg:mt-4">
           <button
             disabled={loader}
             type="submit"
-            className="font-semibold text-white bg-gradient-to-bl from-primary to-red-600 sm:w-[35%] w-[50%] py-2 rounded-full hover:border hover:border-primary hover:bg-black transition-colors duration-100 my-3 cursor-pointer"
+            className="font-semibold text-white bg-gradient-to-bl from-primary to bg-red-600 sm:w-[35%] w-[60%] py-2 rounded-full  hover:border hover:border-primary hover:bg-black transition-colors duration-100 my-3 cursor-pointer"
           >
             {loader ? "Loading..." : "SignUp"}
           </button>
