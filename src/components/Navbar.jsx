@@ -12,6 +12,7 @@ import {
   selectUsernameLoading,
   selectToken,
   clearToken,
+  clearUserName,
 } from "./store/authStore";
 
 function Navbar() {
@@ -57,6 +58,7 @@ function Navbar() {
 
   const logoutHandler = () => {
     dispatch(clearToken());
+    dispatch(clearUserName());
     setShowLogoutDropdown(false);
     toast.success("Logged out successfully!");
     navigate("/");

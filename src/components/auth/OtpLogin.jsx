@@ -106,7 +106,6 @@ function OtpLogin({ onSwitchTab, onClose, isModal = false }) {
         otp: data.otp,
       });
 
-      // Store token using Redux
       if (response.token) {
         dispatch(setToken(response.token));
         toast.success("Login successful!");
@@ -142,7 +141,6 @@ function OtpLogin({ onSwitchTab, onClose, isModal = false }) {
     setOtpSent(false);
     setCanResend(true);
     setResendTimer(0);
-    // Clear the interval when changing email
     if (intervalRef.current) {
       clearInterval(intervalRef.current);
       intervalRef.current = null;
