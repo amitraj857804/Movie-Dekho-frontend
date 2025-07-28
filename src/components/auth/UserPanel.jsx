@@ -20,6 +20,9 @@ const UserPanel = () => {
     confirmPassword: "",
   });
   const [passwordLoading, setPasswordLoading] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteLoading, setDeleteLoading] = useState(false);
+  const [deleteConfirmText, setDeleteConfirmText] = useState("");
   const token = useSelector(selectToken);
   const dispatch = useDispatch();
   const usernameInputRef = useRef(null);
@@ -56,10 +59,10 @@ const UserPanel = () => {
     if (isEditing && usernameInputRef.current) {
       usernameInputRef.current.focus();
     }
-    if ( changePasswordREf.current) {
+    if (changePasswordREf.current) {
       changePasswordREf.current.focus();
     }
-  }, [isEditing,showPasswordModal]);
+  }, [isEditing, showPasswordModal]);
 
   const handleEditClick = () => {
     setIsEditing(true);
@@ -165,6 +168,34 @@ const UserPanel = () => {
     });
   };
 
+  const handleDeleteAccount = async () => {
+    try {
+      setDeleteLoading(true);
+      await api.delete("/api/user/delete", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      toast.success("Account deleted successfully!");
+
+      // Clear auth data and redirect to home
+      dispatch(clearUserName());
+      localStorage.removeItem("token");
+      window.location.href = "/";
+    } catch (error) {
+      console.error("Error deleting account:", error);
+      toast.error(error.response?.data || "Failed to delete account");
+    } finally {
+      setDeleteLoading(false);
+    }
+  };
+
+  const closeDeleteModal = () => {
+    setShowDeleteModal(false);
+    setDeleteConfirmText("");
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-900 flex items-center justify-center pt-24">
@@ -183,10 +214,10 @@ const UserPanel = () => {
 
   return (
     <div className="min-h-screen bg-gray-900 pt-24 pb-16 px-4 flex justify-center items-center">
-      {!showPasswordModal && (
-        <div className="max-w-4xl sm:min-w-[60%] mx-auto">
+      {!showPasswordModal && !showDeleteModal && (
+        <div className="max-w-4xl w-full sm:min-w-[60%] mx-auto">
           <div className="bg-gray-800 rounded-lg shadow-xl overflow-hidden ">
-            {/* Header */}
+           
             <div className="bg-gradient-to-r from-red-600 to-slate-700 px-6 py-8">
               <div className="flex items-center space-x-4">
                 <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center shadow-lg">
@@ -306,23 +337,23 @@ const UserPanel = () => {
                   )}
                   {!isEditing && (
                     <>
-                    <button
-                      onClick={() => setShowPasswordModal(true)}
-                      className="bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-700 hover:to-gray-800 text-white px-6 py-3 rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg cursor-pointer"
-                    >
-                      Change Password
-                    </button>
-                    <button className="bg-gradient-to-r from-red-400 to-pink-500 hover:from-red-500 hover:to-pink-600 text-white px-6 py-3 rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg cursor-pointer">
-                    View Bookings
-                  </button>
-                  <button className="bg-gradient-to-r from-red-800 opacity-80 to-pink-800 hover:from-red-700 hover:to-pink-700 text-white px-6 py-3 rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg cursor-pointer">
-                   Delete Account
-                  </button>
-                  
+                      <button
+                        onClick={() => setShowPasswordModal(true)}
+                        className="bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-700 hover:to-gray-800 text-white px-6 py-3 rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg cursor-pointer"
+                      >
+                        Change Password
+                      </button>
+                      <button className="bg-gradient-to-r from-red-400 to-pink-500 hover:from-red-500 hover:to-pink-600 text-white px-6 py-3 rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg cursor-pointer">
+                        View Bookings
+                      </button>
+                      <button
+                        onClick={() => setShowDeleteModal(true)}
+                        className="bg-gradient-to-r from-red-800 opacity-80 to-pink-800 hover:from-red-700 hover:to-pink-700 text-white px-6 py-3 rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg cursor-pointer"
+                      >
+                        Delete Account
+                      </button>
                     </>
                   )}
-
-                  
                 </div>
               </div>
             </div>
@@ -412,7 +443,7 @@ const UserPanel = () => {
                 !passwordData.newPassword ||
                 !passwordData.confirmPassword
               }
-              className="flex-1 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 cursor-pointer  disabled:opacity-50 disabled:cursor-not-allowed text-white px-4 py-3 rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg"
+              className="flex-1 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 cursor-pointer  disabled:opacity-50 disabled:cursor-not-allowed text-white px-2.5 py-3 rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg"
             >
               {passwordLoading ? "Changing..." : "Change Password"}
             </button>
@@ -425,6 +456,83 @@ const UserPanel = () => {
           </div>
         </div>
         // </div>
+      )}
+
+      {/* Delete Account Confirmation Modal */}
+      {showDeleteModal && (
+        <div className="bg-gray-800 rounded-lg shadow-xl max-w-md w-full pb-6">
+          <div className="flex justify-between items-center rounded-t-lg mb- bg-gradient-to-r from-red-600 to-slate-700 px-6 py-6">
+            <h3 className="text-xl font-semibold text-white">Delete Account</h3>
+            <button
+              onClick={closeDeleteModal}
+              className="text-gray-400 hover:text-white transition-colors cursor-pointer"
+            >
+              <svg
+                className="w-6 h-6"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              </svg>
+            </button>
+          </div>
+
+          <div className="space-y-4 p-6">
+            <div className="flex items-center justify-center mb-4">
+              <svg
+                className="w-16 h-16 text-red-500"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"
+                />
+              </svg>
+            </div>
+
+            <div className="text-center">
+              <h4 className="text-lg font-semibold text-white mb-2">
+                Are you absolutely sure?
+              </h4>
+              <p className="text-gray-400 mb-4">
+                This action cannot be undone. This will permanently delete your
+                account and remove all your data from our servers.
+              </p>
+              <div className="bg-red-900 bg-opacity-20 border border-red-500 rounded-lg p-4 mb-4">
+                <p className="text-white/90 text-sm">
+                  <strong>Warning:</strong> All your booking history,
+                  preferences, and personal information will be permanently
+                  deleted.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex gap-4 mt-6 px-6">
+            <button
+              onClick={handleDeleteAccount}
+              className="flex-1 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed text-white px-4 py-3 rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg"
+            >
+              {deleteLoading ? "Deleting Account..." : "Delete "}
+            </button>
+            <button
+              onClick={closeDeleteModal}
+              className="flex-1 bg-gradient-to-r from-gray-500 to-gray-600 hover:from-gray-600 hover:to-gray-700 text-white px-4 py-3 rounded-lg cursor-pointer transition-all duration-300 transform hover:scale-105 shadow-lg"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
       )}
     </div>
   );
