@@ -20,7 +20,7 @@ function App() {
 
   return (
     <>
-      <Toaster toastOptions={{ style: { zIndex: 99999 } }} />
+      <Toaster />
       <AuthModalProvider>
         {!isAdminRoute && <Navbar />}
         <Routes>
