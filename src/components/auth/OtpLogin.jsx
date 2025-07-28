@@ -78,21 +78,32 @@ function OtpLogin({ onSwitchTab, onClose, isModal = false }) {
     }
   };
 
-  const sendOtpHandler = async (data) => {
+const sendOtpHandler = async (data) => {
     setLoader(true);
     try {
-      const response = await api.post("api/auth/initiate-login", {
-        email: data.email,
-      });
+      // Determine if the input is email or phone number
+      const inputValue = data.text.trim();
+      const isEmail = inputValue.includes("@");
+
+      const payload = isEmail
+        ? { email: inputValue }
+        : { phoneNumber: inputValue };
+
+      const response = await api.post("api/auth/forgot-password", payload);
 
       toast.success("OTP sent successfully!");
       setOtpSent(true);
-      startResendTimer(30); // Set timer for 30 seconds
+      startResendTimer(30);
       setTimeout(() => {
         setFocus("otp");
       }, 100);
     } catch (error) {
-      toast.error(error.response?.data || "Failed to send OTP. Try again");
+      const errorMessage =
+        error.response?.data?.message ||
+        error.response?.data ||
+        "Failed to send OTP. Please try again.";
+        toast.error(errorMessage);
+      
     } finally {
       setLoader(false);
     }
@@ -101,10 +112,20 @@ function OtpLogin({ onSwitchTab, onClose, isModal = false }) {
   const verifyOtpHandler = async (data) => {
     setLoader(true);
     try {
-      const { data: response } = await api.post("api/auth/verify-otp", {
-        email: data.email,
+      const inputValue = data.text.trim();
+      const isEmail = inputValue.includes("@");
+
+      const payload = {
         otp: data.otp,
-      });
+      };
+
+      if (isEmail) {
+        payload.email = inputValue;
+      } else {
+        payload.phoneNumber = inputValue;
+      }
+
+      const { data: response } = await api.post("api/auth/verify-otp", payload);
 
       // Store token using Redux
       if (response.token) {
@@ -130,12 +151,12 @@ function OtpLogin({ onSwitchTab, onClose, isModal = false }) {
   };
 
   const resendOtp = async () => {
-    const currentEmail = getValues("email");
-    if (!currentEmail) {
-      toast.error("Email is required");
+    const currentEmail = getValues("text");
+    if (!currentText) {
+      toast.error("Email/mobile required");
       return;
     }
-    await sendOtpHandler({ email: currentEmail });
+    await sendOtpHandler({ text: currentText });
   };
 
   const changeEmail = () => {
@@ -160,20 +181,20 @@ function OtpLogin({ onSwitchTab, onClose, isModal = false }) {
 
     // Use currentValues to ensure we get all values
     const formData = {
-      email: currentValues.email || data.email,
+      text: currentValues.text || data.text,
       otp: currentValues.otp || data.otp,
     };
 
     if (!otpSent) {
       // Send OTP
-      if (!formData.email) {
-        toast.error("Please enter your email address");
+      if (!formData.text) {
+        toast.error("Please enter your email/mobiie");
         return;
       }
       await sendOtpHandler(formData);
     } else {
       // Verify OTP
-      if (!formData.email || !formData.otp) {
+      if (!formData.text || !formData.otp) {
         toast.error("Please fill all fields");
         return;
       }
@@ -235,6 +256,9 @@ function OtpLogin({ onSwitchTab, onClose, isModal = false }) {
           <div className="sm:max-w-lg sm:px-4 text-center flex items-center justify-center py-2">
             <div className=" flex flex-col items-center justify-center">
               <span className="text-2xl font-bold">Login with OTP</span>
+              <span className="">
+                If the email/Mobile no. exits we shall send you an otp
+              </span>
               {otpSent && (
                 <p className="text-sm text-red-200 mt-2">
                   OTP sent to your email. Please check your inbox.
@@ -245,15 +269,15 @@ function OtpLogin({ onSwitchTab, onClose, isModal = false }) {
 
           <div className="flex flex-col  gap-2 justify-center items-center">
             <div
-              className={`sm:flex  sm:w-[90%] w-[100%] items-center justify-between gap-2 relative `}
+              className={`sm:flex  sm:w-[70%] w-[90%] items-center justify-between gap-2 relative `}
             >
               <div className="flex-1 mt-2">
                 <InputField
                   required
-                  id="email"
-                  type="email"
-                  message="Email required"
-                  placeholder="Enter your registered e-mail"
+                  id="text"
+                  type="text"
+                  message="Email/phone required"
+                  placeholder="Email/mobile no."
                   register={register}
                   errors={errors}
                   className={" mb-1"}
@@ -262,14 +286,14 @@ function OtpLogin({ onSwitchTab, onClose, isModal = false }) {
                 />
               </div>
             </div>
-            <div className=" sm:w-[90%] w-[100%] pl-3 flex items-start justify-self-start">
+            <div className=" sm:w-[70%] w-[90%] pl-1.5 flex items-start justify-self-start">
               {otpSent && (
                 <button
                   type="button"
                   onClick={changeEmail}
                   className="text-primary text-sm hover:underline  whitespace-nowrap cursor-pointer"
                 >
-                  Change Email
+                  Change Email/Phone
                 </button>
               )}
             </div>
@@ -279,7 +303,7 @@ function OtpLogin({ onSwitchTab, onClose, isModal = false }) {
               </p>
             )}
             <div
-              className={` w-[100%] sm:w-[90%] sm:-ml-2 items-center justify-between gap-3 relative ${
+              className={`sm:w-[70%] w-[90%]  items-center justify-between gap-3 relative ${
                 otpSent ? "" : "hidden"
               } `}
             >
@@ -307,7 +331,7 @@ function OtpLogin({ onSwitchTab, onClose, isModal = false }) {
               <button
                 disabled={loader}
                 type="submit"
-                className="font-semibold text-sm text-white bg-gradient-to-bl from-primary to bg-red-600 sm:w-[35%] w-[50%] py-2 rounded-full  hover:border hover:border-primary hover:bg-black transition-colors duration-100 my-3 cursor-pointer"
+                className="font-semibold text-sm text-white bg-gradient-to-bl from-primary to bg-red-600 sm:w-[35%] w-[40%] py-2 rounded-full  hover:border hover:border-primary hover:bg-black transition-colors duration-100 my-3 cursor-pointer"
               >
                 {loader
                   ? "Loading..."
@@ -321,7 +345,7 @@ function OtpLogin({ onSwitchTab, onClose, isModal = false }) {
                   type="button"
                   onClick={resendOtp}
                   disabled={loader || !canResend}
-                  className={`font-semibold text-sm border border-primary sm:w-[32%] w-[45%] py-2 rounded-full transition-colors duration-200 my-3 ${
+                  className={`font-semibold text-sm border border-primary sm:w-[32%] w-[40%] py-2 rounded-full transition-colors duration-200 my-3 ${
                     canResend && !loader
                       ? "text-primary bg-transparent hover:bg-primary hover:!text-white cursor-pointer"
                       : "text-gray-500 bg-gray-200 cursor-not-allowed"

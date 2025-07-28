@@ -21,7 +21,7 @@ function App() {
 
   return (
     <>
-      <Toaster />
+      <Toaster toastOptions={{ style: { zIndex: 99999 } }} />
       <AuthModalProvider>
 
       
