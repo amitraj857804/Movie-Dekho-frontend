@@ -1,6 +1,6 @@
 import { configureStore, createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import api from "../../api/api";
-import toast from "react-hot-toast";
+
 
 // Async thunk for fetching username
 export const fetchUserName = createAsyncThunk(
@@ -53,6 +53,7 @@ export const tokenSlice = createSlice({
         },
         clearToken: (state) => {
             state.token = null;
+            state.userName = null;
             localStorage.removeItem("JWT_TOKEN");
         },
        
