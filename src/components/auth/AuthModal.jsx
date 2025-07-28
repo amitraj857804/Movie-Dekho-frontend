@@ -95,7 +95,7 @@ const AuthModal = ({ isOpen, onClose, activeTab = 'login', onTabChange }) => {
     <>
       {/* Overlay only for content below navbar - adjust top value based on your navbar height */}
       <div 
-        className="fixed top-16 left-0 right-0 bottom-0 z-[9998] bg-transparent backdrop-blur-sm"
+        className="fixed top-16 left-0 right-0 bottom-0 z-[998] bg-transparent backdrop-blur-sm"
         onClick={handleBackdropClick}
       />
       

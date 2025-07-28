@@ -106,7 +106,7 @@ function ResetPassword({ onSwitchTab, onClose, isModal = false }) {
         errorMessage.toLowerCase().includes("not registered")
       ) {
         toast.error(
-          "This email/phone is not registered. Please check your details or sign up for a new account."
+          "This email/phone is not registered."
         );
       } else {
         toast.error(errorMessage);
@@ -137,10 +137,11 @@ function ResetPassword({ onSwitchTab, onClose, isModal = false }) {
         "api/auth/reset-password",
         payload
       );
-
-      toast.success("Password reset successful!");
-      if (isModal && onSwitchTab) {
-        onSwitchTab("login");
+      if (response) {
+        toast.success("Password reset successful!");
+        if (isModal && onSwitchTab) {
+          onSwitchTab("login");
+        }
       }
     } catch (error) {
       const errorMessage =
@@ -156,7 +157,7 @@ function ResetPassword({ onSwitchTab, onClose, isModal = false }) {
   const resendOtp = async () => {
     const currentText = getValues("text");
     if (!currentText) {
-      toast.error("Email/mobile is required");
+      toast.error("Email/mobile required");
       return;
     }
     await sendOtpHandler({ text: currentText });
@@ -185,7 +186,6 @@ function ResetPassword({ onSwitchTab, onClose, isModal = false }) {
     // Use currentValues to ensure we get all values
     const formData = {
       text: currentValues.text || data.text,
-
       otp: currentValues.otp || data.otp,
       newPassword: currentValues.newPassword || data.newPassword,
     };
@@ -234,7 +234,6 @@ function ResetPassword({ onSwitchTab, onClose, isModal = false }) {
               className="flex items-center gap-2 text-primary hover:!text-white transition-colors duration-200 text-sm font-medium cursor-pointer"
             >
               <FaArrowLeft className="text-lg" />
-             
             </button>
           </div>
 
@@ -290,7 +289,7 @@ function ResetPassword({ onSwitchTab, onClose, isModal = false }) {
                 <button
                   type="button"
                   onClick={changeEmail}
-                  className="text-primary text-sm hover:underline  whitespace-nowrap cursor-pointer"
+                  className="text-primary ml-1.5 sm:ml-0 text-sm hover:underline  whitespace-nowrap cursor-pointer"
                 >
                   Change Email/Phone
                 </button>
@@ -345,7 +344,7 @@ function ResetPassword({ onSwitchTab, onClose, isModal = false }) {
               <button
                 disabled={loader}
                 type="submit"
-                className="font-semibold text-sm text-white bg-gradient-to-bl from-primary to bg-red-600 sm:w-[35%] w-[50%] py-2 rounded-full  hover:border hover:border-primary hover:bg-black transition-colors duration-100 my-3 cursor-pointer"
+                className="font-semibold text-sm text-white bg-gradient-to-bl from-primary to bg-red-600 sm:w-[35%] w-[40%] py-2 rounded-full  hover:border hover:border-primary hover:bg-black transition-colors duration-100 my-3 cursor-pointer"
               >
                 {loader
                   ? "Loading..."
@@ -359,7 +358,7 @@ function ResetPassword({ onSwitchTab, onClose, isModal = false }) {
                   type="button"
                   onClick={resendOtp}
                   disabled={loader || !canResend}
-                  className={`font-semibold text-sm border border-primary sm:w-[32%] w-[45%] py-2 rounded-full transition-colors duration-200 my-3 ${
+                  className={`font-semibold text-sm border border-primary sm:w-[32%] w-[40%] py-2 rounded-full transition-colors duration-200 my-3 ${
                     canResend && !loader
                       ? "text-primary bg-transparent hover:bg-primary hover:!text-white cursor-pointer"
                       : "text-gray-500 bg-gray-200 cursor-not-allowed"
