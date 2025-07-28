@@ -28,7 +28,7 @@ function App() {
           <Route path="/movies" element={<Movies />} />
           <Route path="/movies/:id" element={<MoviesDetails />} />
           <Route path="/movies/:id/:date" element={<SeatLayout />} />
-          <Route path="/user-panel" element={<UserPanel />} />
+          <Route path="/info" element={<UserPanel />} />
           <Route path="/my-bookings" element={<MyBookings />} />
           <Route path="/favorite" element={<Favorite />} />
         </Routes>

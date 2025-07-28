@@ -73,8 +73,16 @@ function Navbar() {
            : "bg-transparent"
        }`}
     >
-      <Link to="/" className="max-lg:flex-1">
-        <img src={assets.logo} alt="" className="w-36 h-auto" />
+      <Link to="/" className="max-lg:flex-1 ml-4 cursor-pointer">
+        <div className="flex items-center">
+          <div className="relative">
+            <span className="text-3xl font-extrabold text-white tracking-wide drop-shadow-lg hover:scale-105 transition-transform duration-300 cursor-pointer">
+              Cine<span className="text-red-500 drop-shadow-md">B</span>ook
+            </span>
+            <div className="absolute -bottom-1 left-0 w-full h-0.5 bg-gradient-to-r from-white via-red-500 to-white opacity-60"></div>
+            <div className="absolute -top-1 right-0 w-2 h-2 bg-red-500 rounded-full opacity-80 animate-pulse"></div>
+          </div>
+        </div>
       </Link>
 
       <div
@@ -165,11 +173,13 @@ function Navbar() {
                       d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
                     />
                   </svg>
-                  <span className="text-sm font-medium text-white">
+                  {/* Desktop: Show full username */}
+                  <span className="hidden sm:block text-sm font-medium text-white">
                     Hi,{" "}
                     <span className="text-primary">{username?.charAt(0)}</span>
                     {username?.slice(1)}!
                   </span>
+                  {/* Mobile: Show only dropdown arrow */}
                   <svg
                     className={`w-4 h-4 text-white transition-transform ${
                       showLogoutDropdown ? "rotate-180" : ""
@@ -191,7 +201,7 @@ function Navbar() {
                   <div className="absolute top-full right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
                     <button
                       onClick={() => {
-                        navigate("/user-panel");
+                        navigate("/info");
                         setShowLogoutDropdown(false);
                       }}
                       className="w-full text-left px-4 py-2 text-sm text-blue-600 hover:bg-blue-50 transition-colors flex items-center gap-2 cursor-pointer"
