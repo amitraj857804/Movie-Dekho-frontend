@@ -9,12 +9,11 @@ import {
   SeatLayout,
   MyBookings,
   Favorite,
- 
 } from "./index.js";
 import { Route, Routes, useLocation } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
 import { AuthModalProvider } from "./hooks/useAuthModalContext.jsx";
-
+import UserPanel from "./components/auth/UserPanel.jsx";
 
 function App() {
   const isAdminRoute = useLocation().pathname.startsWith("/admin");
@@ -23,19 +22,17 @@ function App() {
     <>
       <Toaster toastOptions={{ style: { zIndex: 99999 } }} />
       <AuthModalProvider>
-
-      
-      {!isAdminRoute && <Navbar />}
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/movies" element={<Movies />} />
-        <Route path="/movies/:id" element={<MoviesDetails />} />
-        <Route path="/movies/:id/:date" element={<SeatLayout />} />
-        <Route path="/my-bookings" element={<MyBookings />} />
-        <Route path="/favorite" element={<Favorite />} />
-       
-      </Routes>
-      {!isAdminRoute && <Footer />}
+        {!isAdminRoute && <Navbar />}
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/movies" element={<Movies />} />
+          <Route path="/movies/:id" element={<MoviesDetails />} />
+          <Route path="/movies/:id/:date" element={<SeatLayout />} />
+          <Route path="/user-panel" element={<UserPanel />} />
+          <Route path="/my-bookings" element={<MyBookings />} />
+          <Route path="/favorite" element={<Favorite />} />
+        </Routes>
+        {!isAdminRoute && <Footer />}
       </AuthModalProvider>
     </>
   );

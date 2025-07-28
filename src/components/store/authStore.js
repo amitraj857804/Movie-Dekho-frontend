@@ -14,7 +14,7 @@ export const fetchUserName = createAsyncThunk(
                 throw new Error('No token available');
             }
 
-            const response = await api.get("api/auth/username", {
+            const response = await api.get("/api/user/profile", {
                 headers: {
                     "Authorization": `Bearer ${token}`
                 }

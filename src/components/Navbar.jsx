@@ -29,7 +29,7 @@ function Navbar() {
   useEffect(() => {
     if (token && !username) {
       dispatch(fetchUserName())
-        .unwrap() // This allows us to handle the promise
+        .unwrap()
         .then((username) => {
           // Username fetched successfully
         })
@@ -38,7 +38,7 @@ function Navbar() {
           toast.error("Session expired. Please login again.");
         });
     }
-  }, [token, dispatch]);
+  }, [token, username, dispatch]);
 
   // Scroll effect
   useEffect(() => {
@@ -145,13 +145,26 @@ function Navbar() {
             ) : username ? (
               <div className="relative">
                 <div
-                  className={`flex items-center gap-1 cursor-pointer hover:bg-white/10 px-3 py-2 rounded-full transition-all duration-300 backdrop-blur-sm ${
+                  className={`flex items-center gap-2 cursor-pointer hover:bg-white/10 px-3 py-2 rounded-full transition-all duration-300 backdrop-blur-sm ${
                     isScrolled
                       ? "bg-black/60 hover:bg-white/20"
                       : "bg-black/40 hover:bg-white/15"
                   }`}
                   onClick={() => setShowLogoutDropdown(!showLogoutDropdown)}
                 >
+                  <svg
+                    className="w-5 h-5 text-white"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                    />
+                  </svg>
                   <span className="text-sm font-medium text-white">
                     Hi,{" "}
                     <span className="text-primary">{username?.charAt(0)}</span>
@@ -176,15 +189,28 @@ function Navbar() {
 
                 {showLogoutDropdown && (
                   <div className="absolute top-full right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
-                    <div className="px-4 py-2 text-sm text-gray-700 border-b border-gray-100">
-                      <div className="font-medium">
-                        <span className="text-red-600">
-                          {username?.charAt(0)}
-                        </span>
-                        {username?.slice(1)}
-                      </div>
-                      <div className="text-xs text-gray-500">Signed in</div>
-                    </div>
+                    <button
+                      onClick={() => {
+                        navigate("/user-panel");
+                        setShowLogoutDropdown(false);
+                      }}
+                      className="w-full text-left px-4 py-2 text-sm text-blue-600 hover:bg-blue-50 transition-colors flex items-center gap-2 cursor-pointer"
+                    >
+                      <svg
+                        className="w-4 h-4"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                        />
+                      </svg>
+                      Your Profile
+                    </button>
                     <button
                       onClick={logoutHandler}
                       className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors flex items-center gap-2 cursor-pointer"

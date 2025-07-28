@@ -210,7 +210,7 @@ function Login({ onSwitchTab, onClose, isModal = false,}) {
           className="text-center mt-3 opacity-[0.5] cursor-pointer hover:opacity-[0.8] transition-opacity"
           onClick={navigateToResetPassword}
         >
-          Forget Password?
+          Forgot Password?
         </div>
         <div className="flex justify-center ">
           <button
