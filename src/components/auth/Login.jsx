@@ -6,7 +6,7 @@ import { RiLockPasswordFill } from "react-icons/ri";
 import { FaUser, FaEye, FaEyeSlash} from "react-icons/fa";
 import api from "../../api/api";
 import { useSelector,useDispatch } from "react-redux";
-import { setToken, selectToken } from "../store/authStore";
+import { setToken, selectToken } from "../store/authSlice";
 import { FaArrowLeft } from "react-icons/fa";
 
 function Login({ onSwitchTab, onClose, isModal = false,}) {

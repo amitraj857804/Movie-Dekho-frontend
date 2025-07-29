@@ -2,6 +2,9 @@ import { useAuthModalContext } from "../../hooks/useAuthModalContext";
 import MovieCarousel from "./MovieCarousel";
 import TrendingMovies from "./TrendingMovies";
 import AuthModal from "../../components/auth/AuthModal";
+import { useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchAllMovies, selectAllMovies } from "../../components/store/movieSlice";
 
 function Home() {
   const {
@@ -11,6 +14,17 @@ function Home() {
     closeAuthModal,
     switchAuthTab,
   } = useAuthModalContext();
+
+  const dispatch = useDispatch();
+  const movies = useSelector(selectAllMovies);
+
+  useEffect(() => {
+    if (!movies || movies.length === 0) {
+      dispatch(fetchAllMovies());
+    }
+  }, [dispatch, movies]);
+
+
 
   return (
     <div className={`min-h-screen bg-gray-900 custom-scrollbar `}>
@@ -26,7 +40,7 @@ function Home() {
       <section className="container mx-auto px-6 py-16">
         <div className="text-center max-w-4xl mx-auto">
           <h2 className="text-3xl md:text-4xl font-bold text-white mb-6">
-            Welcome to Movie Dekho
+            Welcome to CineBook
           </h2>
           <p className="text-gray-300 text-lg leading-relaxed mb-8">
             Discover the latest movies, book your tickets, and enjoy an amazing

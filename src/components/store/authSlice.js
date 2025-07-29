@@ -81,11 +81,7 @@ export const tokenSlice = createSlice({
     }
 });
 
-const authStore = configureStore({
-    reducer: {
-        auth: tokenSlice.reducer
-    }
-});
+
 
 export const {
     setToken,
@@ -94,9 +90,10 @@ export const {
     clearUserName,
 } = tokenSlice.actions;
 
+
 export const selectToken = (state) => state.auth.token;
 export const selectUsername = (state) => state.auth.userName;
 export const selectUsernameLoading = (state) => state.auth.userNameLoading;
 
-export default authStore
+
 

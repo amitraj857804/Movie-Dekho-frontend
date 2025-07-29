@@ -3,6 +3,9 @@ import googlePlay from './googlePlay.svg'
 import appStore from './appStore.svg'
 import screenImage from './screenImage.svg'
 import profile from './profile.png'
+import api from '../api/api'
+import { useEffect } from 'react'
+import { useState } from 'react';
 
 export const assets = {
     marvelLogo,
@@ -11,6 +14,9 @@ export const assets = {
     screenImage,
     profile
 }
+
+
+
 
 const dummyCastsData = [
     { "name": "Milla Jovovich", "profile_path": "https://image.tmdb.org/t/p/original/usWnHCzbADijULREZYSJ0qfM00y.jpg", },

@@ -3,7 +3,7 @@ import { useForm } from "react-hook-form";
 import InputField from "../inputField/InputField";
 import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
-import { setToken } from "../store/authStore";
+import { setToken } from "../store/authSlice";
 import { FaArrowLeft } from "react-icons/fa";
 import api from "../../api/api";
 import toast from "react-hot-toast";

@@ -1,22 +1,30 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { ChevronLeftIcon, ChevronRightIcon, PlayIcon, StarIcon } from '@heroicons/react/24/solid';
-import { dummyShowsData } from '../../assets/assets';
+import { useState, useEffect, useCallback } from "react";
+import {
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  PlayIcon,
+} from "@heroicons/react/24/solid";
+
+import { selectAllMovies } from "../../components/store/movieSlice";
+import { useSelector } from "react-redux";
+import Trailer from "../../components/Trailer";
 
 const MovieCarousel = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isAutoPlaying, setIsAutoPlaying] = useState(true);
+  const [showTrailer, setShowTrailer] = useState(false);
 
   // Get first 5 movies for carousel
-  const movies = dummyShowsData.slice(0, 5);
+  const movies = useSelector(selectAllMovies);
 
   const nextSlide = useCallback(() => {
-    setCurrentIndex((prevIndex) => 
+    setCurrentIndex((prevIndex) =>
       prevIndex === movies.length - 1 ? 0 : prevIndex + 1
     );
   }, [movies.length]);
 
   const prevSlide = useCallback(() => {
-    setCurrentIndex((prevIndex) => 
+    setCurrentIndex((prevIndex) =>
       prevIndex === 0 ? movies.length - 1 : prevIndex - 1
     );
   }, [movies.length]);
@@ -25,13 +33,13 @@ const MovieCarousel = () => {
     setCurrentIndex(index);
   };
 
-  // Auto-play functionality
+  // Auto-play functionality - stop when trailer is open
   useEffect(() => {
-    if (!isAutoPlaying) return;
+    if (!isAutoPlaying || showTrailer) return;
 
     const interval = setInterval(nextSlide, 5000);
     return () => clearInterval(interval);
-  }, [isAutoPlaying, nextSlide]);
+  }, [isAutoPlaying, showTrailer, nextSlide]);
 
   // Pause auto-play on hover
   const handleMouseEnter = () => setIsAutoPlaying(false);
@@ -39,8 +47,33 @@ const MovieCarousel = () => {
 
   const currentMovie = movies[currentIndex];
 
+  const formatDate = (dateString) => {
+    if (!dateString) return "N/A";
+
+    // Handle LocalDate format from Spring Boot (e.g., "2025-07-29" or [2025, 7, 29])
+    let date;
+
+    // If it's an array format [year, month, day], convert to Date
+    if (Array.isArray(dateString)) {
+      date = new Date(dateString[0], dateString[1] - 1, dateString[2]); // month is 0-indexed
+    } else {
+      date = new Date(dateString);
+    }
+
+    return date.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+  };
+
+  let release_date;
+  if (movies && currentMovie) {
+    release_date = formatDate(currentMovie.releaseDate);
+  }
+
   return (
-    <div 
+    <div
       className="relative w-full h-[70vh] md:h-[70vh] lg:h-[85vh] overflow-hidden rounded-xl shadow-2xl pt-10 "
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
@@ -51,13 +84,13 @@ const MovieCarousel = () => {
           <div
             key={movie.id}
             className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${
-              index === currentIndex ? 'opacity-100' : 'opacity-0'
+              index === currentIndex ? "opacity-100" : "opacity-0"
             }`}
           >
             <img
-              src={movie.backdrop_path}
+              src={movie.thumbnail}
               alt={movie.title}
-              className="w-full h-full object-cover"
+              className="w-full h-full object-top object-cover"
             />
             {/* Gradient Overlay */}
             <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/40 to-transparent"></div>
@@ -77,43 +110,43 @@ const MovieCarousel = () => {
 
             {/* Movie Details */}
             <div className="flex items-center gap-4 mb-4 text-sm md:text-base">
-              <div className="flex items-center gap-1">
-                <StarIcon className="w-5 h-5 text-yellow-400" />
-                <span className="text-white font-semibold">
-                  {currentMovie?.vote_average?.toFixed(1)}
-                </span>
-              </div>
+              <span className="bg-black/90 lg:bg-white/20 lg:border border-gray-300/30 backdrop-blur-sm px-2.5 rounded-md ">
+                {currentMovie?.certification}
+              </span>
               <span className="text-gray-300">|</span>
-              <span className="text-gray-300">{currentMovie?.release_date?.split('-')[0]}</span>
+              <span className="text-gray-300">{release_date}</span>
               <span className="text-gray-300">|</span>
-              <span className="text-gray-300">{currentMovie?.runtime} min</span>
+              <span className="text-gray-300">{currentMovie?.duration}</span>
             </div>
 
             {/* Genres */}
             <div className="flex flex-wrap gap-2 mb-6">
-              {currentMovie?.genres?.slice(0, 3).map((genre) => (
+              {currentMovie?.genre?.split(",").map((genre,index) => (
                 <span
-                  key={genre.id}
+                  key={index}
                   className="px-3 py-1 bg-white/20 backdrop-blur-sm text-white text-sm rounded-full border border-white/20"
                 >
-                  {genre.name}
+                  {genre}
                 </span>
               ))}
             </div>
 
             {/* Movie Overview */}
             <p className="text-gray-200 text-lg leading-relaxed mb-8 line-clamp-3">
-              {currentMovie?.overview}
+              {currentMovie?.description}
             </p>
 
             {/* Action Buttons */}
             <div className="flex flex-col sm:flex-row gap-4">
-              <button className="flex items-center justify-center gap-3 bg-primary hover:bg-primary/90 cursor-pointer text-white px-8 py-4 rounded-full font-semibold text-lg transition-all duration-300 transform hover:scale-105 shadow-lg">
+              <button className="flex items-center justify-center gap-3 cursor-pointer bg-primary hover:bg-primary/90   backdrop-blur-sm text-white px-8 py-4 rounded-full font-semibold text-lg transition-all duration-300 border border-white/20 hover:border-white/40 hover:scale-105">
+                Book Now
+              </button>
+              <button
+                onClick={() => setShowTrailer(true)}
+                className="flex items-center justify-center gap-3 cursor-pointer bg-white/20 hover:bg-white/30 text-white px-8 py-4 rounded-full font-semibold text-lg transition-all duration-300 transform hover:scale-105 shadow-lg"
+              >
                 <PlayIcon className="w-6 h-6" />
                 Watch Trailer
-              </button>
-              <button className="flex items-center justify-center gap-3 cursor-pointer bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white px-8 py-4 rounded-full font-semibold text-lg transition-all duration-300 border border-white/20 hover:border-white/40">
-                Book Now
               </button>
             </div>
           </div>
@@ -143,8 +176,8 @@ const MovieCarousel = () => {
               onClick={() => goToSlide(index)}
               className={`w-2 h-2 rounded-full transition-all duration-300 cursor-pointer ${
                 index === currentIndex
-                  ? 'bg-primary scale-145'
-                  : 'bg-white/50 hover:bg-white/80'
+                  ? "bg-primary scale-145"
+                  : "bg-white/50 hover:bg-white/80"
               }`}
             />
           ))}
@@ -160,6 +193,12 @@ const MovieCarousel = () => {
           }}
         />
       </div>
+
+      <Trailer
+        isOpen={showTrailer}
+        onClose={() => setShowTrailer(false)}
+        movie={currentMovie}
+      />
     </div>
   );
 };

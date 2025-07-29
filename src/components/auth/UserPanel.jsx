@@ -1,8 +1,9 @@
 import { useEffect, useState, useRef } from "react";
 import { useSelector, useDispatch } from "react-redux";
-import { selectToken, clearUserName, fetchUserName } from "../store/authStore";
+import { selectToken, clearUserName, fetchUserName } from "../store/authSlice";
 import api from "../../api/api";
 import toast from "react-hot-toast";
+import { useNavigate } from "react-router-dom";
 
 const UserPanel = () => {
   const [profile, setProfile] = useState(null);
@@ -27,6 +28,7 @@ const UserPanel = () => {
   const dispatch = useDispatch();
   const usernameInputRef = useRef(null);
   const changePasswordREf = useRef(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -343,7 +345,9 @@ const UserPanel = () => {
                       >
                         Change Password
                       </button>
-                      <button className="bg-gradient-to-r from-red-400 to-pink-500 hover:from-red-500 hover:to-pink-600 text-white px-6 py-3 rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg cursor-pointer">
+                      <button 
+                      onClick={()=> navigate("/my-bookings")}
+                      className="bg-gradient-to-r from-red-400 to-pink-500 hover:from-red-500 hover:to-pink-600 text-white px-6 py-3 rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg cursor-pointer">
                         View Bookings
                       </button>
                       <button
