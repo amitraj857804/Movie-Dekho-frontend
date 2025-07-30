@@ -198,6 +198,16 @@ const UserPanel = () => {
     setDeleteConfirmText("");
   };
 
+  useEffect(() => {
+    if (!loading) {
+      window.scrollTo({
+        top: 0,
+        left: 0,
+        behavior: "smooth",
+      });
+    }
+  }, [showPasswordModal, showDeleteModal,loading]);
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-900 flex items-center justify-center pt-24">
@@ -219,7 +229,6 @@ const UserPanel = () => {
       {!showPasswordModal && !showDeleteModal && (
         <div className="max-w-4xl w-full sm:min-w-[60%] mx-auto">
           <div className="bg-gray-800 rounded-lg shadow-xl overflow-hidden ">
-           
             <div className="bg-gradient-to-r from-red-600 to-slate-700 px-6 py-8">
               <div className="flex items-center space-x-4">
                 <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center shadow-lg">
@@ -345,9 +354,10 @@ const UserPanel = () => {
                       >
                         Change Password
                       </button>
-                      <button 
-                      onClick={()=> navigate("/my-bookings")}
-                      className="bg-gradient-to-r from-red-400 to-pink-500 hover:from-red-500 hover:to-pink-600 text-white px-6 py-3 rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg cursor-pointer">
+                      <button
+                        onClick={() => navigate("/my-bookings")}
+                        className="bg-gradient-to-r from-red-400 to-pink-500 hover:from-red-500 hover:to-pink-600 text-white px-6 py-3 rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg cursor-pointer"
+                      >
                         View Bookings
                       </button>
                       <button

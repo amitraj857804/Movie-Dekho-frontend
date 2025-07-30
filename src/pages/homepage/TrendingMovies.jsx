@@ -48,7 +48,9 @@ const TrendingMovies = () => {
                 {/* Overlay */}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                   <div className="absolute top-[30%] left-0 right-0 p-4 flex flex-col gap-3">
-                    <button className="w-full bg-primary hover:bg-primary/90 text-white text-lg py-2 px-3 rounded-full transition-colors duration-300 font-semibold cursor-pointer">
+                    <button
+                    onClick={()=> navigate(`/movies/${movie.id}`)}
+                     className="w-full bg-primary hover:bg-primary/90 text-white text-lg py-2 px-3 rounded-full transition-colors duration-300 font-semibold cursor-pointer">
                       Book Now
                     </button>
                     <button

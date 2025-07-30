@@ -3,7 +3,7 @@ import { XMarkIcon } from "@heroicons/react/24/solid";
 
 function Trailer({ isOpen, onClose, movie }) {
   // Don't render if modal is not open
-  console.log(movie);
+  
   if (!isOpen) return null;
 
   // Close modal on Escape key press
@@ -38,7 +38,7 @@ const handleClose = () => {
   // Function to convert YouTube URL to embed format
   const getYouTubeEmbedUrl = (url) => {
     if (!url) {
-      console.log("No URL provided");
+ 
       return null;
     }
 

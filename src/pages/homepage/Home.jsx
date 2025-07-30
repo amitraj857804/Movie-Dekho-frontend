@@ -2,7 +2,7 @@ import { useAuthModalContext } from "../../hooks/useAuthModalContext";
 import MovieCarousel from "./MovieCarousel";
 import TrendingMovies from "./TrendingMovies";
 import AuthModal from "../../components/auth/AuthModal";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchAllMovies, selectAllMovies } from "../../components/store/movieSlice";
 
@@ -17,12 +17,43 @@ function Home() {
 
   const dispatch = useDispatch();
   const movies = useSelector(selectAllMovies);
+  const [isLoading , setIsLoading] = useState(true)
+
+  
 
   useEffect(() => {
     if (!movies || movies.length === 0) {
       dispatch(fetchAllMovies());
+      
     }
   }, [dispatch, movies]);
+
+   useEffect(() => {
+      const loadMovies = async () => {
+        if (movies.length === 0) {
+          console.log("Fetching movies data...");
+          try {
+            await dispatch(fetchAllMovies()).unwrap();
+          } catch (error) {
+            console.error("Error fetching movies:", error);
+          }
+        }
+        setIsLoading(false);
+      };
+  
+      loadMovies();
+    }, [dispatch, movies.length]);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-900 pt-20 px-6 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+         
+        </div>
+      </div>
+    );
+  }
 
 
 

@@ -8,11 +8,13 @@ import {
 import { selectAllMovies } from "../../components/store/movieSlice";
 import { useSelector } from "react-redux";
 import Trailer from "../../components/Trailer";
+import { useNavigate } from "react-router-dom";
 
 const MovieCarousel = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isAutoPlaying, setIsAutoPlaying] = useState(true);
   const [showTrailer, setShowTrailer] = useState(false);
+  const navigate = useNavigate();
 
   // Get first 5 movies for carousel
   const movies = useSelector(selectAllMovies);
@@ -138,7 +140,9 @@ const MovieCarousel = () => {
 
             {/* Action Buttons */}
             <div className="flex flex-col sm:flex-row gap-4">
-              <button className="flex items-center justify-center gap-3 cursor-pointer bg-primary hover:bg-primary/90   backdrop-blur-sm text-white px-8 py-4 rounded-full font-semibold text-lg transition-all duration-300 border border-white/20 hover:border-white/40 hover:scale-105">
+              <button
+              onClick={()=> navigate(`/movies/${currentMovie.id}`)}
+               className="flex items-center justify-center gap-3 cursor-pointer bg-primary hover:bg-primary/90   backdrop-blur-sm text-white px-8 py-4 rounded-full font-semibold text-lg transition-all duration-300 border border-white/20 hover:border-white/40 hover:scale-105">
                 Book Now
               </button>
               <button
