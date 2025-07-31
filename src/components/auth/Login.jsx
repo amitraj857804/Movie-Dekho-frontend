@@ -107,7 +107,7 @@ function Login({ onSwitchTab, onClose, isModal = false,}) {
             Login
           </h1>
           <h1
-            className="text-center font-serif text-primary font-bold lg:text-2xl text-xl cursor-pointer"
+            className="text-center text-primary font-bold lg:text-2xl text-xl cursor-pointer"
             onClick={navigateToSignUp}
           >
             SignUp

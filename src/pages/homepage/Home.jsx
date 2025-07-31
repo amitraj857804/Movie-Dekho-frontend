@@ -44,6 +44,17 @@ function Home() {
       loadMovies();
     }, [dispatch, movies.length]);
 
+     // Scroll to top after loading is complete or when movie ID changes
+      useEffect(() => {
+        if (!isLoading) {
+          window.scrollTo({
+            top: 0,
+            left: 0,
+            behavior: "smooth",
+          });
+        }
+      }, [ isLoading]); 
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-900 pt-20 px-6 flex items-center justify-center">
