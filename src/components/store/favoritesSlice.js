@@ -1,5 +1,6 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import api from "../../api/api";
+import { clearToken } from "./authSlice"; // Import the logout action
 
 // Async thunk for fetching user's favorite movies
 export const fetchFavoriteMovies = createAsyncThunk(
@@ -30,7 +31,7 @@ export const fetchFavoriteMovies = createAsyncThunk(
 // Async thunk for adding a movie to favorites
 export const addToFavorites = createAsyncThunk(
     'favorites/addToFavorites',
-    async (movieId, { getState, rejectWithValue }) => {
+    async ({ movieId, movieData }, { getState, rejectWithValue }) => {
         try {
             const state = getState();
             const token = state.auth.token;
@@ -45,7 +46,7 @@ export const addToFavorites = createAsyncThunk(
                 }
             });
 
-            return { movieId, message: response.data };
+            return { movieId, movieData, message: response.data };
         } catch (error) {
             const errorMessage = error.response?.data?.message || error.message || 'Failed to add to favorites';
             return rejectWithValue(errorMessage);
@@ -74,6 +75,32 @@ export const removeFromFavorites = createAsyncThunk(
             return { movieId, message: response.data };
         } catch (error) {
             const errorMessage = error.response?.data?.message || error.message || 'Failed to remove from favorites';
+            return rejectWithValue(errorMessage);
+        }
+    }
+);
+
+// Async thunk for clearing all favorites
+export const clearAllFavorites = createAsyncThunk(
+    'favorites/clearAllFavorites',
+    async (_, { getState, rejectWithValue }) => {
+        try {
+            const state = getState();
+            const token = state.auth.token;
+
+            if (!token) {
+                throw new Error('No token available');
+            }
+
+            const response = await api.delete('/api/user/favorites/all', {
+                headers: {
+                    "Authorization": `Bearer ${token}`
+                }
+            });
+
+            return { message: response.data };
+        } catch (error) {
+            const errorMessage = error.response?.data?.message || error.message || 'Failed to clear all favorites';
             return rejectWithValue(errorMessage);
         }
     }
@@ -124,9 +151,13 @@ export const favoritesSlice = createSlice({
             })
             .addCase(addToFavorites.fulfilled, (state, action) => {
                 state.actionLoading = false;
-                const { movieId } = action.payload;
+                const { movieId, movieData } = action.payload;
                 if (!state.favoriteMovieIds.includes(movieId)) {
                     state.favoriteMovieIds.push(movieId);
+                    // Add the complete movie object to favoriteMovies array
+                    if (movieData) {
+                        state.favoriteMovies.push(movieData);
+                    }
                 }
             })
             .addCase(addToFavorites.rejected, (state, action) => {
@@ -148,6 +179,30 @@ export const favoritesSlice = createSlice({
             .addCase(removeFromFavorites.rejected, (state, action) => {
                 state.actionLoading = false;
                 state.error = action.payload;
+            })
+            
+            // Clear all favorites
+            .addCase(clearAllFavorites.pending, (state) => {
+                state.actionLoading = true;
+                state.error = null;
+            })
+            .addCase(clearAllFavorites.fulfilled, (state) => {
+                state.actionLoading = false;
+                state.favoriteMovies = [];
+                state.favoriteMovieIds = [];
+            })
+            .addCase(clearAllFavorites.rejected, (state, action) => {
+                state.actionLoading = false;
+                state.error = action.payload;
+            })
+            
+            // Clear favorites on logout
+            .addCase(clearToken, (state) => {
+                state.favoriteMovies = [];
+                state.favoriteMovieIds = [];
+                state.loading = false;
+                state.actionLoading = false;
+                state.error = null;
             });
     }
 });

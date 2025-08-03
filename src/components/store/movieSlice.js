@@ -1,11 +1,11 @@
-import { configureStore, createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import api from "../../api/api";
 
 export const fetchAllMovies = createAsyncThunk(
     'movie/fetchAllMovies',
-    async (_, {getState, rejectWithValue }) => {
+    async (_, { getState, rejectWithValue }) => {
         try {
-             
+
             const response = await api.get("movies/recent");
             return response.data;
 
@@ -18,8 +18,9 @@ export const fetchAllMovies = createAsyncThunk(
 
 
 const initialState = {
-
     allmoviesData: [],
+    loading: false,
+    error: null,
 }
 
 export const movieSlice = createSlice({
@@ -32,13 +33,22 @@ export const movieSlice = createSlice({
     },
     extraReducers: (builder) => {
         builder
+            .addCase(fetchAllMovies.pending, (state, action) => {
+           state.loading = true;
+                state.error = null;
+            })
             .addCase(fetchAllMovies.fulfilled, (state, action) => {
+                state.loading = false;
                 state.allmoviesData = action.payload;
-            });
+                
+            })
+            .addCase(fetchAllMovies.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload;
+            })
+
     }
 });
-
-
 
 
 

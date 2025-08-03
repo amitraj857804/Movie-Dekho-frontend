@@ -206,6 +206,7 @@ function MovieDetails() {
             <div className="absolute flex bottom-2 right-3 gap-2">
               <FavoriteButton 
                 movieId={movie.id}
+                movieData={movie}
                 variant="small"
                 size="w-5 h-5"
                 showTooltip={true}
@@ -352,7 +353,7 @@ function MovieDetails() {
                 <img
                   src={movie.thumbnail}
                   alt={movie.title}
-                  className="md:w-[70%] lg:w-[80%] md:h-80 xl:h-125  rounded-lg shadow-2xl"
+                  className="md:w-[70%] lg:w-[80%] md:h-80 xl:h-115  rounded-lg shadow-2xl"
                 />
               </div>
             </div>
@@ -444,6 +445,7 @@ function MovieDetails() {
                     <div className="flex gap-4 lg:mt-6 md:mt-12 xl:mt-18">
                       <FavoriteButton 
                         movieId={movie.id}
+                        movieData={movie}
                         variant="default"
                         size="w-4 h-4"
                         showTooltip={true}

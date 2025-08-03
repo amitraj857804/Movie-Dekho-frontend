@@ -32,7 +32,7 @@ const MovieCard = ({ movie, showFavoriteButton = true }) => {
                     <img
                         src={movie.thumbnail}
                         alt={movie.title}
-                        className="w-full md:h-70 xl:h-115 object-cover transition-transform duration-300 group-hover:scale-110"
+                        className="w-full md:h-70 xl:h-100  object-cover transition-transform duration-300 group-hover:scale-110"
                     />
 
                     {/* Favorite button overlay */}
@@ -40,6 +40,7 @@ const MovieCard = ({ movie, showFavoriteButton = true }) => {
                         <div className="absolute top-2 right-2 z-10">
                             <FavoriteButton 
                                 movieId={movie.id}
+                                movieData={movie}
                                 variant="small"
                                 size="w-5 h-5"
                                 className="bg-black/50 hover:bg-black/70"

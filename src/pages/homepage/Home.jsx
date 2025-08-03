@@ -12,7 +12,6 @@ function Home() {
   const {
     isAuthModalOpen,
     authModalTab,
-    openAuthModal,
     closeAuthModal,
     switchAuthTab,
   } = useAuthModalContext();
