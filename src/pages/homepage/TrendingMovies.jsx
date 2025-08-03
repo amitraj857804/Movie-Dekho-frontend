@@ -25,7 +25,7 @@ const TrendingMovies = () => {
           </button>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 custom-scrollbar">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6 custom-scrollbar">
           {trendingMovies.map((movie) => (
             <MovieCard
               key={movie.id}
