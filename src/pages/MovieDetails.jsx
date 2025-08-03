@@ -7,23 +7,21 @@ import {
   CalendarIcon,
   LanguageIcon,
   ArrowLeftIcon,
-  HeartIcon,
   ShareIcon,
   FilmIcon,
 } from "@heroicons/react/24/solid";
-import { HeartIcon as HeartOutline } from "@heroicons/react/24/outline";
 import {
   selectAllMovies,
   fetchAllMovies,
 } from "../components/store/movieSlice";
 import Trailer from "../components/Trailer";
+import FavoriteButton from "../components/FavoriteButton";
 
 function MovieDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const [showTrailer, setShowTrailer] = useState(false);
-  const [isFavorite, setIsFavorite] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isExpanded, setIsExpanded] = useState(false);
   const [isMobileView, setIsMobileView] = useState(false);
@@ -139,11 +137,6 @@ function MovieDetails() {
     navigate(`/movies/${movie.id}/date-selection`);
   };
 
-  const toggleFavorite = () => {
-    setIsFavorite(!isFavorite);
-    // Here you would typically make an API call to save the favorite status
-  };
-
   const handleWatchTrailer = (movie) => {
     setShowTrailer(true);
   };
@@ -211,16 +204,12 @@ function MovieDetails() {
               </span>
             </div>
             <div className="absolute flex bottom-2 right-3 gap-2">
-              <button
-                onClick={toggleFavorite}
-                className="flex items-center justify-center bg-white/20 hover:bg-white/30 text-white p-2 rounded-full font-semibold transition-all duration-300 hover:scale-105 cursor-pointer backdrop-blur-sm border border-white/20"
-              >
-                {isFavorite ? (
-                  <HeartIcon className="w-5 h-5 text-red-500" />
-                ) : (
-                  <HeartOutline className="w-5 h-5" />
-                )}
-              </button>
+              <FavoriteButton 
+                movieId={movie.id}
+                variant="small"
+                size="w-5 h-5"
+                showTooltip={true}
+              />
 
               <button className="flex items-center justify-center bg-white/20 hover:bg-white/30 text-white p-2 rounded-full font-semibold transition-all duration-300 hover:scale-105 cursor-pointer backdrop-blur-sm border border-white/20">
                 <ShareIcon className="w-5 h-5" />
@@ -453,16 +442,12 @@ function MovieDetails() {
                       {movie.certification || "Not Rated"}
                     </span>
                     <div className="flex gap-4 lg:mt-6 md:mt-12 xl:mt-18">
-                      <button
-                        onClick={toggleFavorite}
-                        className="flex items-center justify-center gap-3 bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-full font-semibold transition-all duration-300 hover:scale-105 cursor-pointer backdrop-blur-sm border border-white/20"
-                      >
-                        {isFavorite ? (
-                          <HeartIcon className="w-4 h-4 text-red-500" />
-                        ) : (
-                          <HeartOutline className="w-4 h-4" />
-                        )}
-                      </button>
+                      <FavoriteButton 
+                        movieId={movie.id}
+                        variant="default"
+                        size="w-4 h-4"
+                        showTooltip={true}
+                      />
 
                       <button className="flex items-center justify-center gap-3 bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-full font-semibold transition-all duration-300 hover:scale-105 cursor-pointer backdrop-blur-sm border border-white/20">
                         <ShareIcon className="w-4 h-4" />
