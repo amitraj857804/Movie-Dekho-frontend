@@ -241,7 +241,7 @@ function MovieDetails() {
           </span>
         </div>
         {/* Mobile Movie Information Section */}
-        <div className=" px-4 py-6 ">
+        <div className=" px-4 py-2 ">
           {/* Conditional Content Based on Active Tab */}
           {activeTab === "movieDetails" && (
             <>
@@ -353,19 +353,19 @@ function MovieDetails() {
                 <img
                   src={movie.thumbnail}
                   alt={movie.title}
-                  className="md:w-[70%] lg:w-[80%] md:h-80 xl:h-115  rounded-lg shadow-2xl"
+                  className="md:w-[70%] lg:w-[80%] md:h-80  rounded-lg shadow-2xl"
                 />
               </div>
             </div>
 
             {/* Movie Information */}
-            <div className="lg:col-span-2 md:col-span-1 lg:space-y-2 xl:space-y-4 md:w-[100%] md:-ml-16 lg:-ml-4">
+            <div className="lg:col-span-2 md:col-span-1 lg:space-y-2  md:w-[100%] md:-ml-16 lg:-ml-4">
               <h3 className="text-4xl font-bold text-white mb-4">
                 {movie.title.toUpperCase()}
               </h3>
 
               <div className="mb-4">
-                <p className="text-gray-300 sm:text-sm xl:text-xl sm:leading-tight xl:leading-relaxed">
+                <p className="text-gray-300 sm:text-sm  sm:leading-tight xl:leading-relaxed">
                   {getDisplayDescription()}
                   {movie.description && movie.description.length > 100 && (
                     <button
@@ -380,12 +380,12 @@ function MovieDetails() {
 
               {/* Movie Stats */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-45 lg:gap-6 xl:mt-8">
-                <div className="sm:space-y-2 xl:space-y-6">
+                <div className="sm:space-y-2 ">
                   <h4 className="text-xl font-semibold text-white">
                     Movie Information
                   </h4>
 
-                  <div className="space-y-1 md:col-span-1 md:space-y-0 lg:space-y-1 xl:space-y-4">
+                  <div className="space-y-1 md:col-span-1 md:space-y-0 lg:space-y-1 ">
                     <div className="flex items-center gap-3 flex-nowrap">
                       <CalendarIcon className="w-5 h-5 text-primary flex-shrink-0" />
                       <span className="text-gray-400 whitespace-nowrap">
@@ -426,7 +426,7 @@ function MovieDetails() {
                     </div>
                     <button
                       onClick={() => handleWatchTrailer(movie)}
-                      className="w-[75%] flex items-center justify-center gap-3 mt-6 xl:mt-14 cursor-pointer text-lg bg-white hover:bg-white/80 backdrop-blur-sm text-gray-800 jg:px-2 md:px-28 py-2 rounded-full font-semibold hover:scale-105 transition-all duration-300 transform shadow-lg"
+                      className="w-[75%] flex items-center justify-center gap-3 mt-6 cursor-pointer text-lg bg-white hover:bg-white/80 backdrop-blur-sm text-gray-800 jg:px-2 md:px-28 py-2 rounded-full font-semibold hover:scale-105 transition-all duration-300 transform shadow-lg"
                     >
                       <PlayIcon className="w-6 h-6 flex-shrink-0" />
                       <span className="whitespace-nowrap">Watch Trailer</span>
@@ -434,7 +434,7 @@ function MovieDetails() {
                   </div>
                 </div>
 
-                <div className="space-y-2 xl:space-y-6">
+                <div className="space-y-2">
                   <h4 className="text-xl font-semibold text-white">
                     Certification
                   </h4>
@@ -442,7 +442,7 @@ function MovieDetails() {
                     <span className="text-white font-semibold text-md px-2 py-1 rounded-lg bg-gray-800 border-gray-600">
                       {movie.certification || "Not Rated"}
                     </span>
-                    <div className="flex gap-4 lg:mt-6 md:mt-12 xl:mt-18">
+                    <div className="flex gap-4 lg:mt-6 md:mt-12 ">
                       <FavoriteButton 
                         movieId={movie.id}
                         movieData={movie}

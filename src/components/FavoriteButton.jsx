@@ -27,8 +27,7 @@ const FavoriteButton = ({
     e.stopPropagation(); // Prevent event bubbling if used in card
 
     if (!token) {
-      // Could show a login modal here
-      alert("Please login to add favorites");
+      toast.error("Please login to add favorites");
       return;
     }
 

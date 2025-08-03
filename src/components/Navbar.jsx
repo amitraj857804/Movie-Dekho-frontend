@@ -52,7 +52,6 @@ function Navbar() {
   }, []);
 
   const loginHandler = () => {
-    
     openAuthModal("login");
   };
 
