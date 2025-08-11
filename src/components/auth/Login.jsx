@@ -54,7 +54,7 @@ function Login({ onSwitchTab, onClose, isModal = false,}) {
       toast.success(" Login Successful!");
     } catch (error) {
       
-      toast.error(error.response.data || "Login failed. Please try again.");
+      toast.error(error.response?.data?.error || "Login failed. Please try again.");
     } finally {
       setLoader(false);
     }

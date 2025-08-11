@@ -22,7 +22,10 @@ export const fetchFavoriteMovies = createAsyncThunk(
 
             return response.data;
         } catch (error) {
-            const errorMessage = error.response?.data?.message || error.message || 'Failed to fetch favorites';
+            const errorMessage = error.response?.data?.error || 
+                               error.response?.data?.message || 
+                               error.message || 
+                               'Failed to fetch favorites';
             return rejectWithValue(errorMessage);
         }
     }
@@ -48,7 +51,10 @@ export const addToFavorites = createAsyncThunk(
 
             return { movieId, movieData, message: response.data };
         } catch (error) {
-            const errorMessage = error.response?.data?.message || error.message || 'Failed to add to favorites';
+            const errorMessage = error.response?.data?.error || 
+                               error.response?.data?.message || 
+                               error.message || 
+                               'Failed to add to favorites';
             return rejectWithValue(errorMessage);
         }
     }
@@ -80,7 +86,6 @@ export const removeFromFavorites = createAsyncThunk(
     }
 );
 
-// Async thunk for clearing all favorites
 export const clearAllFavorites = createAsyncThunk(
     'favorites/clearAllFavorites',
     async (_, { getState, rejectWithValue }) => {
@@ -92,7 +97,7 @@ export const clearAllFavorites = createAsyncThunk(
                 throw new Error('No token available');
             }
 
-            const response = await api.delete('/api/user/favorites/all', {
+            const response = await api.delete('/api/user/favorites/deleteall', {
                 headers: {
                     "Authorization": `Bearer ${token}`
                 }
@@ -108,10 +113,10 @@ export const clearAllFavorites = createAsyncThunk(
 
 const initialState = {
     favoriteMovies: [],
-    favoriteMovieIds: [], // Keep track of just the IDs for quick lookup
+    favoriteMovieIds: [], 
     loading: false,
     error: null,
-    actionLoading: false, // For add/remove operations
+    actionLoading: false,
 }
 
 export const favoritesSlice = createSlice({
@@ -129,7 +134,6 @@ export const favoritesSlice = createSlice({
     },
     extraReducers: (builder) => {
         builder
-            // Fetch favorites
             .addCase(fetchFavoriteMovies.pending, (state) => {
                 state.loading = true;
                 state.error = null;

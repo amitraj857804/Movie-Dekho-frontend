@@ -95,7 +95,7 @@ function ResetPassword({ onSwitchTab, onClose, isModal = false }) {
     } catch (error) {
       const errorMessage =
         error.response?.data?.message ||
-        error.response?.data ||
+        error.response?.data.error ||
         "Failed to send OTP. Please try again.";
 
       // Handle specific error cases
@@ -146,7 +146,7 @@ function ResetPassword({ onSwitchTab, onClose, isModal = false }) {
     } catch (error) {
       const errorMessage =
         error.response?.data?.message ||
-        error.response?.data ||
+        error.response?.data.error ||
         "Failed to reset password. Try again";
       toast.error(errorMessage);
     } finally {

@@ -12,11 +12,11 @@ import toast from "react-hot-toast";
 
 const FavoriteButton = ({
   movieId,
-  movieData, // Add movieData prop
+  movieData,
   className = "",
   size = "w-5 h-5",
   showTooltip = true,
-  variant = "default", // default, small, large
+  variant = "default", 
 }) => {
   const dispatch = useDispatch();
   const token = useSelector(selectToken);
@@ -24,7 +24,7 @@ const FavoriteButton = ({
   const isLoading = useSelector(selectFavoritesActionLoading);
 
   const handleToggleFavorite = async (e) => {
-    e.stopPropagation(); // Prevent event bubbling if used in card
+    e.stopPropagation(); 
 
     if (!token) {
       toast.error("Please login to add favorites");
@@ -43,7 +43,6 @@ const FavoriteButton = ({
     }
   };
 
-  // Different button variants
   const getButtonClasses = () => {
     const baseClasses =
       "flex items-center justify-center transition-all duration-300 cursor-pointer";
