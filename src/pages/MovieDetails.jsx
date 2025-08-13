@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import {
@@ -16,6 +16,7 @@ import {
 } from "../components/store/movieSlice";
 import Trailer from "../components/Trailer";
 import FavoriteButton from "../components/FavoriteButton";
+import BookTicket from "../components/BookTicket";
 
 function MovieDetails() {
   const { id } = useParams();
@@ -25,7 +26,7 @@ function MovieDetails() {
   const [isLoading, setIsLoading] = useState(true);
   const [isExpanded, setIsExpanded] = useState(false);
   const [isMobileView, setIsMobileView] = useState(false);
-  const [activeTab, setActiveTab] = useState("movieDetails"); // Track active tab
+  const [activeTab, setActiveTab] = useState("bookTicket"); // Track active tab
 
   const movies = useSelector(selectAllMovies);
   const movie = movies.find((m) => m.id === parseInt(id));
@@ -34,7 +35,6 @@ function MovieDetails() {
   useEffect(() => {
     const loadMovies = async () => {
       if (movies.length === 0) {
-        
         try {
           await dispatch(fetchAllMovies()).unwrap();
         } catch (error) {
@@ -75,7 +75,6 @@ function MovieDetails() {
       window.removeEventListener("resize", checkMobileView);
     };
   }, []);
- 
 
   // Show loading state while fetching data
   if (isLoading) {
@@ -133,9 +132,6 @@ function MovieDetails() {
     });
   };
 
-  const handleBookNow = () => {
-    navigate(`/movies/${movie.id}/date-selection`);
-  };
 
   const handleWatchTrailer = (movie) => {
     setShowTrailer(true);
@@ -204,7 +200,7 @@ function MovieDetails() {
               </span>
             </div>
             <div className="absolute flex bottom-2 right-3 gap-2">
-              <FavoriteButton 
+              <FavoriteButton
                 movieId={movie.id}
                 movieData={movie}
                 variant="small"
@@ -219,20 +215,20 @@ function MovieDetails() {
           </div>
         </div>
         <div className="p-4 mt-19 flex gap-10 font-bold text-xl text-primary/80">
-          <span 
+          <span
             className={`cursor-pointer transition-all duration-300 relative ${
-              activeTab === "bookTicket" 
-                ? "after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-full after:h-1 after:bg-gradient-to-r after:from-white after:via-primary after:to-orange-500 after:rounded-full after:-mb-1 text-white" 
+              activeTab === "bookTicket"
+                ? "after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-full after:h-1 after:bg-gradient-to-r after:from-white after:via-primary after:to-orange-500 after:rounded-full after:-mb-1 text-white"
                 : "hover:text-white"
             }`}
             onClick={() => setActiveTab("bookTicket")}
           >
             Book Ticket
           </span>
-          <span 
+          <span
             className={`cursor-pointer transition-all duration-300 relative ${
-              activeTab === "movieDetails" 
-                ? "after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-full after:h-1 after:bg-gradient-to-r after:from-white after:via-primary after:to-orange-500 after:rounded-full after:-mb-1 text-white" 
+              activeTab === "movieDetails"
+                ? "after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-full after:h-1 after:bg-gradient-to-r after:from-white after:via-primary after:to-orange-500 after:rounded-full after:-mb-1 text-white"
                 : "hover:text-white"
             }`}
             onClick={() => setActiveTab("movieDetails")}
@@ -240,23 +236,28 @@ function MovieDetails() {
             Movie Details
           </span>
         </div>
+
+        {activeTab === "bookTicket" && (
+          <BookTicket/>
+        )}
         {/* Mobile Movie Information Section */}
         <div className=" px-4 py-2 ">
           {/* Conditional Content Based on Active Tab */}
           {activeTab === "movieDetails" && (
             <>
-             <h1 className="text-xl font-bold text-white  drop-shadow-lg mb-1">
-              {movie.title.toUpperCase()}
-            </h1>
-            <span className="text-white mr-3 ">{movie.duration || "N/A"}</span>
-            <span className="text-white font-semibold text-sm px-3 py-1 rounded-lg bg-gray-800/80 backdrop-blur-sm">
+              <h1 className="text-xl font-bold text-white  drop-shadow-lg mb-1">
+                {movie.title.toUpperCase()}
+              </h1>
+              <span className="text-white mr-3 ">
+                {movie.duration || "N/A"}
+              </span>
+              <span className="text-white font-semibold text-sm px-3 py-1 rounded-lg bg-gray-800/80 backdrop-blur-sm">
                 {movie.certification || "Not Rated"}
               </span>
               {/* Description */}
               <div className="my-6">
                 <p className="text-gray-300 text-sm leading-relaxed">
-                
-                  {movie.description }
+                  {movie.description}
                 </p>
               </div>
 
@@ -274,51 +275,32 @@ function MovieDetails() {
                   <div className="flex items-center gap-3">
                     <FilmIcon className="w-5 h-5 text-primary flex-shrink-0" />
                     <span className="text-gray-400">Genre:</span>
-                    <span className="text-white">{movie.genre.split(",")[0]}</span>
+                    <span className="text-white">
+                      {movie.genre.split(",")[0]}
+                    </span>
                   </div>
 
                   <div className="flex items-center gap-3">
                     <ClockIcon className="w-5 h-5 text-primary flex-shrink-0" />
                     <span className="text-gray-400">Duration:</span>
-                    <span className="text-white">{movie.duration || "N/A"}</span>
+                    <span className="text-white">
+                      {movie.duration || "N/A"}
+                    </span>
                   </div>
 
                   <div className="flex items-center gap-3">
                     <LanguageIcon className="w-5 h-5 text-primary flex-shrink-0" />
                     <span className="text-gray-400">Language:</span>
-                    <span className="text-white">{movie.language || "N/A"}</span>
+                    <span className="text-white">
+                      {movie.language || "N/A"}
+                    </span>
                   </div>
                 </div>
               </div>
             </>
           )}
 
-          {activeTab === "bookTicket" && (
-            <div className="space-y-6">
-              <h3 className="text-xl font-semibold text-white">Book Your Tickets</h3>
-              
-              {/* Ticket Booking Content */}
-              <div className="space-y-4">
-                <div className="bg-gray-800 p-4 rounded-lg">
-                  <h4 className="text-white font-semibold mb-2">Select Show Time</h4>
-                  <p className="text-gray-400 text-sm">Choose your preferred showtime and book tickets.</p>
-                </div>
-                
-                <button
-                  onClick={handleBookNow}
-                  className="w-full bg-primary hover:bg-primary/90 text-white py-3 rounded-full font-semibold text-lg transition-all duration-300 hover:scale-105"
-                >
-                  Proceed to Book Tickets
-                </button>
-                
-                <div className="text-center">
-                  <p className="text-gray-400 text-sm">
-                    Select your seats and complete your booking
-                  </p>
-                </div>
-              </div>
-            </div>
-          )}
+         
         </div>
 
         {/* Trailer Modal */}
@@ -334,7 +316,7 @@ function MovieDetails() {
   // Desktop View Layout
   return (
     <div className="min-h-screen bg-gray-900 ">
-      <div className="bg-gradient-to-b  from-gray-800 via-gray-700 to-red-800/30 w-[100%] px-6 pt-30 pb-10">
+      <div className="bg-gradient-to-b  from-gray-800 via-red-900/30 to-red-800/30 w-[100%] px-6 pt-30 pb-10">
         <div className="container mx-auto px-12 ">
           {/* Back Button */}
           <div className="mb-6">
@@ -443,7 +425,7 @@ function MovieDetails() {
                       {movie.certification || "Not Rated"}
                     </span>
                     <div className="flex gap-4 lg:mt-6 md:mt-12 ">
-                      <FavoriteButton 
+                      <FavoriteButton
                         movieId={movie.id}
                         movieData={movie}
                         variant="default"
@@ -462,6 +444,9 @@ function MovieDetails() {
           </div>
         </div>
       </div>
+
+      {/* Book tickets - selcet Date,time and theatre */}
+      <BookTicket  />
 
       {/* Trailer Modal */}
       <Trailer

@@ -1,19 +1,564 @@
-import React from 'react'
+import React, { useState, useEffect } from "react";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
+import {
+  ArrowLeftIcon,
+  CurrencyRupeeIcon,
+  CheckIcon,
+  XMarkIcon,
+} from "@heroicons/react/24/outline";
+import api from "../api/api";
+import { selectToken } from "../components/store/authSlice";
+import { useSelector } from "react-redux";
 
 function SeatLayout() {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const { id } = useParams();
+  const token = useSelector(selectToken);
+
+  // Get booking details from navigation state
+  const bookingDetails = location.state || {};
+  const { movie, selectedDateObj, selectedTimeWithAmPm, selectedCinema } =
+    bookingDetails;
+
+  console.log(selectedDateObj);
+
+  // State management
+  const [seats, setSeats] = useState([]);
+  const [selectedSeats, setSelectedSeats] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [ticketCount, setTicketCount] = useState(10);
+
+  useEffect(() => {
+    if (!loading) {
+      window.scrollTo({
+        top: 0,
+        left: 0,
+        behavior: "smooth",
+      });
+    }
+  }, [loading]);
+
+  // Fetch seat layout from API
+  useEffect(() => {
+    const fetchSeats = async () => {
+      try {
+        setLoading(true);
+        // Use the slot ID from selectedCinema or fallback to a default
+        const slotId = selectedCinema?.slotId || selectedCinema?.id || 12;
+        const response = await api.get(`api/seats/slot/${slotId}`, {
+          headers: {
+            Accept: "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        setSeats(response.data);
+      } catch (err) {
+        console.error("Error fetching seats:", err);
+        setError(err.response?.data?.message || err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (selectedCinema?.slotId || selectedCinema?.id) {
+      fetchSeats();
+    } else {
+      setLoading(false);
+      setError("No slot ID available");
+    }
+  }, [selectedCinema, token]);
+
+  // Handle seat selection
+  const handleSeatClick = (seat) => {
+    if (seat.booked || seat.status === "BOOKED") {
+      return; // Don't allow selecting booked seats
+    }
+
+    const seatId = seat.id || seat.seatId;
+    const isSelected = selectedSeats.find((s) => (s.id || s.seatId) === seatId);
+
+    if (isSelected) {
+      // Remove seat from selection
+      setSelectedSeats(
+        selectedSeats.filter((s) => (s.id || s.seatId) !== seatId)
+      );
+    } else {
+      // Add seat to selection (limit based on ticket count)
+      if (selectedSeats.length < ticketCount) {
+        setSelectedSeats([...selectedSeats, seat]);
+      }
+    }
+  };
+  console.log(selectedSeats);
+  // Get seat status for styling
+  const getSeatClass = (seat) => {
+    const seatId = seat.id || seat.seatId;
+    const isSelected = selectedSeats.find((s) => (s.id || s.seatId) === seatId);
+    const isBooked = seat.isBooked || seat.status === "BOOKED";
+
+    if (isBooked) {
+      return "bg-red-500 cursor-not-allowed opacity-50";
+    } else if (isSelected) {
+      return "bg-primary border-2 border-primary-light cursor-pointer";
+    } else {
+      return "border-gray-500 bg-gray-900 border hover:bg-gray-500 cursor-pointer";
+    }
+  };
+
+  // Calculate total price
+  const calculateTotal = () => {
+    const totalSeatPrice = selectedSeats.reduce(
+      (total, seat) => total + seat.price,
+      0
+    );
+
+    const convenienceFee = selectedSeats.reduce(
+      (total, seats) => total + seats.price * 0.02,
+      0
+    );
+    return totalSeatPrice + convenienceFee;
+  };
+
+  // Handle booking confirmation
+  const handleBookingConfirm = () => {
+    if (selectedSeats.length === 0) {
+      alert("Please select at least one seat");
+      return;
+    }
+
+    // Navigate to payment or confirmation page
+    navigate("/payment", {
+      state: {
+        ...bookingDetails,
+        selectedSeats,
+        totalAmount: calculateTotal(),
+        seatPrice: selectedCinema?.price || 250,
+      },
+    });
+  };
+
+  // Group seats by row for better display
+  const groupSeatsByRow = (seatsData) => {
+    const grouped = {};
+    seatsData.forEach((seat) => {
+      const row = seat.seatNumber.split("")[0];
+      if (!grouped[row]) {
+        grouped[row] = [];
+      }
+      grouped[row].push(seat);
+    });
+
+    // Sort seats within each row by seat number
+    Object.keys(grouped).forEach((row) => {
+      grouped[row].sort((a, b) => {
+        const seatNumA = parseInt(
+          a.seatNumber?.replace(/[A-Z]/g, "") || a.number || 0
+        );
+        const seatNumB = parseInt(
+          b.seatNumber?.replace(/[A-Z]/g, "") || b.number || 0
+        );
+        return seatNumA - seatNumB;
+      });
+    });
+
+    return grouped;
+  };
+
+  // Calculate spacing for center alignment
+  const getRowSpacing = (currentRowSeats, maxSeatsInAnyRow) => {
+    const seatDifference = maxSeatsInAnyRow - currentRowSeats;
+    const spacesOnEachSide = Math.floor(seatDifference / 2);
+    return spacesOnEachSide;
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-900 pt-20 px-6 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-white text-lg">Loading seat layout...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-900 pt-20 px-6 flex items-center justify-center">
+        <div className="text-center">
+          <XMarkIcon className="w-16 h-16 text-red-500 mx-auto mb-4" />
+          <h2 className="text-2xl font-bold text-white mb-4">
+            Error Loading Seats
+          </h2>
+          <p className="text-gray-400 mb-6">{error}</p>
+          <button
+            onClick={() => navigate(-1)}
+            className="bg-primary hover:bg-primary/90 text-white px-6 py-3 rounded-lg transition-colors"
+          >
+            Go Back
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  const groupedSeats = groupSeatsByRow(seats);
+  const rows = Object.keys(groupedSeats).sort();
+
+  // Find the maximum number of seats in any row for proper centering
+  const maxSeatsInAnyRow = Math.max(
+    ...rows.map((row) => groupedSeats[row].length)
+  );
+
   return (
-    <div className="min-h-screen bg-gray-900 pt-20 px-6">
-      <div className="container mx-auto">
-        <h1 className="text-3xl md:text-4xl font-bold text-white mb-8">
-          Seat Selection
-        </h1>
-        <div className="text-center py-16">
-          <h2 className="text-xl text-gray-400 mb-4">Coming Soon</h2>
-          <p className="text-gray-500">Seat selection interface will be available here</p>
+    <div className="min-h-screen bg-gray-900 pt-6 px-6 py-8 ">
+      <div className=" container  min-h-screen mx-auto max-w-6xl top-18 relative mb-8">
+        {/* Header */}
+        <div className="mb-8">
+          {/* Back Button and Title */}
+
+          {/* Steps Indicator */}
+          <div className="bg-gray-800 rounded-lg p-4 mb-6 flex">
+            <button
+              onClick={() => navigate(-1)}
+              className="p-2 rounded-lg bg-gray-800 hover:bg-gray-700 transition-colors cursor-pointer mr-2 "
+            >
+              <ArrowLeftIcon className="w-6 h-6 text-white" />
+            </button>
+
+            {/* Desktop Steps */}
+            <div className="hidden md:flex items-center justify-between max-w-2xl mx-auto sm:w-[90%]">
+              {/* Step 1: Movie & Show */}
+              <div className="flex items-center">
+                <div className="flex items-center justify-center w-8 h-8 bg-primary text-white rounded-full text-sm font-medium">
+                  ✓
+                </div>
+                <div className="ml-3">
+                  <p className="text-sm font-medium text-white">Movie & Show</p>
+                  <p className="text-xs text-gray-400">Completed</p>
+                </div>
+              </div>
+
+              {/* Connector Line */}
+              <div className="flex-1 h-px bg-primary mx-4"></div>
+
+              {/* Step 2: Select Seats (Current) */}
+              <div className="flex items-center">
+                <div className="flex items-center justify-center w-8 h-8 bg-primary text-white rounded-full text-sm font-medium animate-pulse">
+                  2
+                </div>
+                <div className="ml-3">
+                  <p className="text-sm font-medium text-primary">
+                    Select Seats
+                  </p>
+                  <p className="text-xs text-gray-400">In Progress</p>
+                </div>
+              </div>
+
+              {/* Connector Line */}
+              <div className="flex-1 h-px bg-gray-600 mx-4"></div>
+
+              {/* Step 3: Payment */}
+              <div className="flex items-center">
+                <div className="flex items-center justify-center w-8 h-8 bg-gray-600 text-gray-400 rounded-full text-sm font-medium">
+                  3
+                </div>
+                <div className="ml-3">
+                  <p className="text-sm font-medium text-gray-400">Payment</p>
+                  <p className="text-xs text-gray-500">Pending</p>
+                </div>
+              </div>
+
+              {/* Connector Line */}
+              <div className="flex-1 h-px bg-gray-600 mx-4"></div>
+
+              {/* Step 4: Confirmation */}
+              <div className="flex items-center">
+                <div className="flex items-center justify-center w-8 h-8 bg-gray-600 text-gray-400 rounded-full text-sm font-medium">
+                  4
+                </div>
+                <div className="ml-3">
+                  <p className="text-sm font-medium text-gray-400">
+                    Confirmation
+                  </p>
+                  <p className="text-xs text-gray-500">Pending</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Mobile Steps */}
+            <div className="md:hidden">
+              <div className="flex items-center justify-center space-x-3">
+                {/* Step indicators only */}
+                <div className="flex items-center flex-col gap-0.5">
+                  <div className="w-6 h-6 bg-primary text-white rounded-full text-xs font-medium flex items-center justify-center">
+                    ✓
+                  </div>
+                  <span className="text-xs text-gray-400 ">Movie</span>
+                </div>
+
+                <div className="w-8 h-px bg-primary"></div>
+
+                <div className="flex items-center flex-col gap-0.5">
+                  <div className="w-6 h-6 bg-primary text-white rounded-full text-xs font-medium flex items-center justify-center animate-pulse">
+                    2
+                  </div>
+                  <span className="text-xs text-primary ">Seats</span>
+                </div>
+
+                <div className="w-8 h-px bg-gray-600"></div>
+
+                <div className="flex items-center flex-col gap-0.5">
+                  <div className="w-6 h-6 bg-gray-600 text-gray-400 rounded-full text-xs font-medium flex items-center justify-center">
+                    3
+                  </div>
+                  <span className="text-xs text-gray-400 ">Pay</span>
+                </div>
+
+                <div className="w-8 h-px bg-gray-600"></div>
+
+                <div className="flex items-center flex-col gap-0.5">
+                  <div className="w-6 h-6 bg-gray-600 text-gray-400 rounded-full text-xs font-medium flex items-center justify-center">
+                    4
+                  </div>
+                  <span className="text-xs text-gray-400 ">Done</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="grid lg:grid-cols-4 grid-cols-1 gap-8">
+          {/* Seat Layout */}
+          <div className="lg:col-span-3">
+            <div className="bg-gray-800 rounded-lg p-6 ">
+              {/* Screen */}
+              <div className="mb-8">
+                <div className=" mx-auto sm:max-w-2xl w-full">
+                  {/* Screen with curved effect */}
+                  <div
+                    className="bg-gradient-to-r from-primary/10 via-primary/30 to-primary/10 rounded-t-full  text-center transform perspective-1000 rotate-x-12 shadow-2xl"
+                    style={{
+                      background:
+                        "linear-gradient(to right, rgba(99, 102, 241, 0.1), rgba(99, 102, 241, 0.4), rgba(99, 102, 241, 0.1))",
+                      borderRadius: "100px 100px 20px 20px",
+                      transform: "perspective(300px) rotateX(45deg)",
+                      boxShadow:
+                        "0 10px 30px rgba(99, 102, 241, 0.3), inset 0 2px 4px rgba(255, 255, 255, 0.1)",
+                    }}
+                  >
+                    <p className="text-white font-bold text-lg tracking-widest">
+                      SCREEN
+                    </p>
+                    {/* Screen glow effect */}
+                    <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 w-3/4 h-1 bg-primary/40 blur-sm rounded-full"></div>
+                  </div>
+                  {/* Floor reflection */}
+                  <div
+                    className="w-full h-2 bg-gradient-to-r from-transparent via-primary/10 to-transparent rounded-b-lg"
+                    style={{
+                      background:
+                        "linear-gradient(to right, transparent, rgba(99, 102, 241, 0.1), transparent)",
+                    }}
+                  ></div>
+                </div>
+              </div>
+
+              {/* Seats */}
+              <div className="mx-auto max-h-80 md:max-h-none overflow-y-auto md:overflow-y-visible  md:border-none rounded-lg md:rounded-none p-4 md:p-0">
+                <div className="space-y-3 mx-auto pb-1 ">
+                  {rows.map((row) => {
+                    const currentRowSeats = groupedSeats[row].length;
+                    const spacingCount = getRowSpacing(
+                      currentRowSeats,
+                      maxSeatsInAnyRow
+                    );
+
+                    return (
+                      <div key={row} className="flex items-center gap-2">
+                        {/* Row Label - Fixed position */}
+                        <div className="w-8 text-center flex-shrink-0">
+                          <span className="text-gray-400 font-medium">
+                            {row}
+                          </span>
+                        </div>
+
+                        {/* Seats in Row - Centered with spacing */}
+                        <div className="flex-1 items-center justify-center">
+                          <div className="flex gap-1 justify-center items-center min-w-max px-2 sm:px-0">
+                            {/* Leading spacers for center alignment */}
+                            {Array.from(
+                              { length: spacingCount },
+                              (_, index) => (
+                                <div
+                                  key={`spacer-start-${index}`}
+                                  className="w-8 h-8 flex-shrink-0 md:hidden"
+                                ></div>
+                              )
+                            )}
+
+                            {/* Actual seat buttons */}
+                            {groupedSeats[row].map((seat, index) => (
+                              <button
+                                key={seat.id || seat.seatId || index}
+                                onClick={() => handleSeatClick(seat)}
+                                className={`w-8 h-8 rounded text-xs font-medium text-white transition-all duration-200 hover:scale-105 flex-shrink-0 ${getSeatClass(
+                                  seat
+                                )}`}
+                                disabled={
+                                  seat.isBooked || seat.status === "BOOKED"
+                                }
+                                title={`${seat.seatNumber || seat.number} - ${
+                                  seat.isBooked || seat.status === "BOOKED"
+                                    ? "Booked"
+                                    : "Available"
+                                }`}
+                              >
+                                {parseInt(
+                                  seat.seatNumber?.replace(/[A-Z]/g, "") ||
+                                    seat.number ||
+                                    0
+                                )}
+                              </button>
+                            ))}
+
+                            {/* Trailing spacers for center alignment */}
+                            {Array.from(
+                              { length: spacingCount },
+                              (_, index) => (
+                                <div
+                                  key={`spacer-end-${index}`}
+                                  className="w-8 h-8 flex-shrink-0 md:hidden"
+                                ></div>
+                              )
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+            {/* Legend */}
+            <div className="flex justify-center gap-6 m-6 flex-wrap">
+              <div className="flex items-center gap-2">
+                <div className="w-4 h-4 border-gray-500 bg-gray-900 border rounded"></div>
+                <span className="text-gray-400 text-sm">Available</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-4 h-4 bg-primary rounded"></div>
+                <span className="text-gray-400 text-sm">Selected</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-4 h-4 bg-red-500 rounded opacity-50"></div>
+                <span className="text-gray-400 text-sm">Booked</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Booking Summary */}
+          <div className="lg:col-span-1">
+            <div className="bg-gray-800 rounded-lg p-6 sticky top-6">
+              <h3 className="text-lg font-semibold text-white mb-4">
+                Booking Summary
+              </h3>
+
+              {/* Movie Details */}
+              {movie && (
+                <div className="mb-4 pb-4 border-b border-gray-700 flex gap-3 ">
+                  <div>
+                    <img
+                      src={`${movie.thumbnail}`}
+                      alt={`${movie.title}`}
+                      className="w-20 rounded-sm"
+                    />
+                  </div>
+                  <div>
+                    <h4 className="font-medium text-white">{movie.title}</h4>
+                    <p className="text-sm text-gray-400">
+                      {selectedCinema?.theaterName}
+                    </p>
+                    <p className="text-sm text-gray-400">
+                      {selectedDateObj?.date} {selectedDateObj?.monthName} •{" "}
+                      {selectedTimeWithAmPm.replace(/\s+/g, "")}
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {/* Selected Seats */}
+              <div className="mb-4">
+                <h4 className="font-medium text-white mb-2">Selected Seats</h4>
+                {selectedSeats.length > 0 ? (
+                  <div className="flex flex-wrap gap-1">
+                    {selectedSeats.map((seat, index) => (
+                      <span
+                        key={index}
+                        className="bg-primary px-2 py-1 rounded text-xs text-white"
+                      >
+                        {seat.seatNumber || seat.number}
+                      </span>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-gray-400 text-sm">No seats selected</p>
+                )}
+              </div>
+
+              {/* Price Breakdown */}
+              {selectedSeats.length > 0 && (
+                <div className="mb-6 space-y-2">
+                  <div className="flex justify-between text-gray-300">
+                    <span>Seats ({selectedSeats.length})</span>
+                    <span>
+                      ₹
+                      {selectedSeats.reduce(
+                        (total, seat) => total + (seat.price || 0),
+                        0
+                      )}
+                    </span>
+                  </div>
+                  <div className="flex justify-between text-gray-300">
+                    <span>Convenience Fee</span>
+                    <span>
+                      ₹
+                      {selectedSeats.reduce(
+                        (total, seats) => total + seats.price * 0.02,
+                        0
+                      )}
+                    </span>
+                  </div>
+                  <div className="flex justify-between text-lg font-bold text-white border-t border-gray-600 pt-2">
+                    <span>Total</span>
+                    <span className="text-primary">₹{calculateTotal()}</span>
+                  </div>
+                </div>
+              )}
+
+              {/* Proceed Button */}
+              <button
+                onClick={handleBookingConfirm}
+                disabled={selectedSeats.length === 0}
+                className={`w-full py-3 rounded-lg font-semibold transition-all duration-300  cursor-pointer ${
+                  selectedSeats.length > 0
+                    ? "bg-primary hover:bg-primary/90 text-white hover:scale-105"
+                    : "bg-gray-600 text-gray-400 cursor-not-allowed"
+                }`}
+              >
+                {selectedSeats.length > 0
+                  ? "Proceed to Payment"
+                  : "Select Seats"}
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
-  )
+  );
 }
 
-export default SeatLayout
+export default SeatLayout;

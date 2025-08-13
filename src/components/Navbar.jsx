@@ -1,5 +1,4 @@
 import { Link, useNavigate } from "react-router-dom";
-import { assets } from "../assets/assets";
 import { MenuIcon, SearchIcon, XIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";

@@ -55,7 +55,7 @@ const handleClose = () => {
     if (match && match[2].length === 11) {
       const videoId = match[2];
 
-      const embedUrl = `https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0&modestbranding=1`;
+      const embedUrl = `https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0&modestbranding=1&controls=1&showinfo=0&fs=1&playsinline=1&enablejsapi=1`;
 
       return embedUrl;
     }
@@ -73,30 +73,40 @@ const handleClose = () => {
       onClick={handleBackdropClick}
     >
       {/* Modal Container */}
-      <div className="relative bg-gray-900 rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden">
-        <div className="flex items-center justify-between p-6 pt-3 pb-2 border-b border-gray-700">
-          <div>
-            <h2 className="text-2xl font-bold text-white">
-              {movie?.title || "Movie Trailer"}
-            </h2>
+      <div className="relative bg-gray-900 rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden">
+        <div className="flex items-center justify-between p-6 pt-4 pb-4 border-b border-gray-700/50 bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900">
+          <div className="flex items-center space-x-4">
+            <div className="w-2 h-8 bg-gradient-to-b from-primary to-primary/60 rounded-full"></div>
+            <div>
+              <h2 className="text-3xl font-bold text-white tracking-wide">
+                {movie?.title || "Movie Trailer"}
+              </h2>
+              <p className="text-primary/80 text-sm font-medium mt-1">
+                Official Trailer
+              </p>
+            </div>
           </div>
           <button
             onClick={handleClose}
-            className="text-gray-400 hover:text-white transition-colors p-2 hover:bg-gray-800 rounded-lg cursor-pointer"
+            className="group relative text-gray-400 hover:text-white transition-all duration-300 p-3 hover:bg-gradient-to-r hover:from-red-500/20 hover:to-red-600/20 rounded-xl cursor-pointer hover:scale-110 hover:shadow-lg hover:shadow-red-500/25"
           >
-            <XMarkIcon className="w-6 h-6" />
+            <XMarkIcon className="w-6 h-6 transition-transform duration-300 group-hover:rotate-90" />
+            <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-red-500/10 to-red-600/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
           </button>
         </div>
 
         {/* Video Container */}
-        <div className="p-6">
-          <div className="relative w-full h-0 sm:pb-[48.25%] pb-[80.25%] bg-gray-800 rounded-lg overflow-hidden">
+        <div className="p-2">
+          <div className="relative w-full h-0 sm:pb-[56.25%] pb-[56.25%]  rounded-lg overflow-hidden">
             {embedUrl ? (
               <iframe
                 className="absolute top-0 left-0 w-full h-full"
-                src={embedUrl}
+                src={`${embedUrl}&vq=hd1080`}
                 title={`${movie?.title} Trailer`}
-                frameBorder="0"
+                style={{
+                  objectFit: 'cover',
+                  filter: 'contrast(1.1) saturate(1.1)',
+                }}
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                 allowFullScreen
               ></iframe>
@@ -125,47 +135,7 @@ const handleClose = () => {
             )}
           </div>
 
-          {/* Movie Info */}
-          {movie && (
-            <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <h3 className="text-lg font-semibold text-white mb-2">
-                  Overview
-                </h3>
-                <p className="text-gray-300 text-sm leading-relaxed line-clamp-4">
-                  {movie.description || "No overview available."}
-                </p>
-              </div>
-              <div>
-                <h3 className="text-lg font-semibold text-white mb-2">
-                  Details
-                </h3>
-                <div className="space-y-2 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-gray-400">Rating:</span>
-                    <span className="text-white">
-                      {movie.vote_average
-                        ? `${movie.vote_average.toFixed(1)}/10`
-                        : "N/A"}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-400">Runtime:</span>
-                    <span className="text-white">
-                      {movie.duration ? `${movie.duration}` : "N/A"}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-400">Language:</span>
-                    <span className="text-white">
-                      {movie.original_language?.toUpperCase() || "N/A"}
-                    </span>
-                  </div>
-                  
-                </div>
-              </div>
-            </div>
-          )}
+       
         </div>
       </div>
     </div>
