@@ -2,10 +2,10 @@ import React, { useState, useEffect } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import {
   ArrowLeftIcon,
-  CurrencyRupeeIcon,
-  CheckIcon,
   XMarkIcon,
+  
 } from "@heroicons/react/24/outline";
+import { FaChair } from "react-icons/fa";
 import api from "../api/api";
 import { selectToken } from "../components/store/authSlice";
 import { useSelector } from "react-redux";
@@ -102,7 +102,7 @@ function SeatLayout() {
     if (isBooked) {
       return "bg-red-500 cursor-not-allowed opacity-50";
     } else if (isSelected) {
-      return "bg-primary border-2 border-primary-light cursor-pointer";
+      return "bg-primary border-1 border-primary-light cursor-pointer";
     } else {
       return "border-gray-500 bg-gray-900 border hover:bg-gray-500 cursor-pointer";
     }
@@ -405,7 +405,7 @@ function SeatLayout() {
                               <button
                                 key={seat.id || seat.seatId || index}
                                 onClick={() => handleSeatClick(seat)}
-                                className={`w-8 h-8 rounded text-xs font-medium text-white transition-all duration-200 hover:scale-105 flex-shrink-0 ${getSeatClass(
+                                className={`w-8 h-8 rounded text-xs flex justify-center items-center font-medium text-white transition-all duration-200 hover:scale-105 flex-shrink-0 ${getSeatClass(
                                   seat
                                 )}`}
                                 disabled={
@@ -417,11 +417,7 @@ function SeatLayout() {
                                     : "Available"
                                 }`}
                               >
-                                {parseInt(
-                                  seat.seatNumber?.replace(/[A-Z]/g, "") ||
-                                    seat.number ||
-                                    0
-                                )}
+                               <FaChair/>
                               </button>
                             ))}
 
