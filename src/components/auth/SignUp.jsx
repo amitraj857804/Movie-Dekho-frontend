@@ -46,7 +46,7 @@ const SignUp = ({ onSwitchTab, onClose, isModal = false, modalNavigationContext 
     } catch (error) {
       toast.error(
         error.response?.data?.message ||
-          error.response?.data ||
+          error.response?.data.error ||
           "Signup failed. Please try again."
       );
     } finally {

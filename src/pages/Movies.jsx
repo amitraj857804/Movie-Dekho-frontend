@@ -14,7 +14,7 @@ function Movies() {
   }, [dispatch, movies.length]);
 
   return (
-    <div className="min-h-screen bg-gray-900 pt-20 px-6">
+    <div className="min-h-screen bg-gray-900 pt-20 px-6 pb-10">
       <div className="container mx-auto">
         <h1 className="text-3xl md:text-4xl font-bold text-white mb-8">
           All Movies

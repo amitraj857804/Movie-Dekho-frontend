@@ -100,7 +100,7 @@ const sendOtpHandler = async (data) => {
     } catch (error) {
       const errorMessage =
         error.response?.data?.message ||
-        error.response?.data ||
+        error.response?.data.error ||
         "Failed to send OTP. Please try again.";
         toast.error(errorMessage);
       
@@ -141,7 +141,7 @@ const sendOtpHandler = async (data) => {
     } catch (error) {
       const errorMessage =
         error.response?.data?.message ||
-        error.response?.data ||
+        error.response?.data.error ||
         "Invalid OTP. Try again";
       toast.error(errorMessage);
     } finally {
