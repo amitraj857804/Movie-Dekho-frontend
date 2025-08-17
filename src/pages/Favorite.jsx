@@ -203,6 +203,14 @@ function Favorite() {
           )}
         </div>
       </div>
+      
+      {/* Auth Modal */}
+      <AuthModal
+        isOpen={isAuthModalOpen}
+        onClose={closeAuthModal}
+        activeTab={authModalTab}
+        onTabChange={switchAuthTab}
+      />
     </>
   );
 }

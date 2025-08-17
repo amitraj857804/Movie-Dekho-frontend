@@ -1,6 +1,6 @@
 import { Link, useNavigate } from "react-router-dom";
 import { MenuIcon, SearchIcon, XIcon } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import toast from "react-hot-toast";
 import { useAuthModalContext } from "../hooks/useAuthModalContext";
@@ -18,6 +18,7 @@ function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [showLogoutDropdown, setShowLogoutDropdown] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const dropdownRef = useRef(null);
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const username = useSelector(selectUsername);
@@ -49,6 +50,25 @@ function Navbar() {
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setShowLogoutDropdown(false);
+      }
+    };
+
+    if (showLogoutDropdown) {
+      document.addEventListener("mousedown", handleClickOutside);
+    } else {
+      document.removeEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [showLogoutDropdown]);
 
   const loginHandler = () => {
     openAuthModal("login");
@@ -149,7 +169,7 @@ function Navbar() {
             {isLoading ? (
               <span className="text-sm animate-pulse">Loading user...</span>
             ) : username ? (
-              <div className="relative">
+              <div className="relative" ref={dropdownRef}>
                 <div
                   className={`flex items-center gap-2 cursor-pointer hover:bg-white/10 px-3 py-2 rounded-full transition-all duration-300 backdrop-blur-sm ${
                     isScrolled

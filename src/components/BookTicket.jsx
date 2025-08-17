@@ -1,13 +1,15 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
 
 import { MapPinIcon } from "@heroicons/react/24/outline";
 import { selectAllMovies } from "./store/movieSlice";
+import { setBookingData, setBookingStep } from "./store/bookingSlice";
 
 function BookTicket() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const movies = useSelector(selectAllMovies);
   const movie = movies.find((m) => m.id === parseInt(id));
   const [movieSlots, setMovieSlots] = useState(movie?.slots || []);
@@ -42,24 +44,19 @@ function BookTicket() {
     ];
 
     movieSlots.forEach((slot) => {
-      if (slot.showDate && Array.isArray(slot.showDate)) {
-        const [year, month, day] = slot.showDate;
-
+      if (slot.showDate) {
         // Create a proper date object for sorting
-        const dateObj = new Date(year, month - 1, day); // month is 1-based in data, 0-based in Date constructor
+        const dateObj = new Date(slot.showDate);
 
-        const fullDate = `${year}-${month.toString().padStart(2, "0")}-${day
-          .toString()
-          .padStart(2, "0")}`;
+        const fullDate = dateObj.toISOString().split("T")[0]; // YYYY-MM-DD format
 
         if (!uniqueDates.has(fullDate)) {
           uniqueDates.set(fullDate, {
-            date: day.toString().padStart(2, "0"),
-            monthName: monthNames[month - 1], // month is 1-based in data
+            date: dateObj.getDate().toString().padStart("2", "0"),
+            monthName: monthNames[dateObj.getMonth()],
             dayName: dayNames[dateObj.getDay()],
             fullDate: fullDate,
-            sortDate: dateObj,
-            originalDate: [year, month, day],
+            sortDate: dateObj.getTime(),
           });
         }
       }
@@ -95,19 +92,10 @@ function BookTicket() {
 
     // Match with movie slots using the same date format
     const matchingSlots = movieSlots.filter((slot) => {
-      if (!slot.showDate || !Array.isArray(slot.showDate)) {
+      if (!slot.showDate) {
         return false;
       }
-
-      // slot.showDate is in format [year, month, day] where month is 1-based
-      const [slotYear, slotMonth, slotDay] = slot.showDate;
-
-      // Convert to our date format for comparison
-      const slotDateFormatted = `${slotYear}-${slotMonth
-        .toString()
-        .padStart(2, "0")}-${slotDay.toString().padStart(2, "0")}`;
-
-      return slotDateFormatted === selectedDateObj.fullDate;
+      return slot.showDate === selectedDateObj.fullDate;
     });
 
     // Group slots by theater name
@@ -124,18 +112,17 @@ function BookTicket() {
           slots: [],
         };
       }
-
+      
       // Add showtimes from this slot
-      if (slot.startTime && Array.isArray(slot.startTime)) {
-        const shortFormatTime =
-          slot.startTime[0] > 12
-            ? [slot.startTime[0] - 12, slot.startTime[1]]
-            : [slot.startTime[0], slot.startTime[1]];
-        const hr = shortFormatTime[0].toString().padStart(2, "0");
-        const min = shortFormatTime[1].toString().padStart(2, "0");
+      if (slot.startTime) {
+        const hr =
+          slot.startTime.split(":")[0] > 12
+            ? (slot.startTime.split(":")[0] - 12).toString().padStart(2, "0")
+            : slot.startTime.split(":")[0].padStart(2, "0");
+        const min = slot.startTime.split(":")[1].padStart(2, "0");
         theaterGroups[theaterName].showtimes.push({
           time: `${hr} : ${min}`,
-          amPm: slot.startTime[0] > 12 ? " PM" : " AM",
+          amPm: slot.startTime.split(":")[0] > 12 ? " PM" : " AM",
           slotId: slot.slotId,
           slot: slot,
           sortTime: slot.startTime[0] * 60 + slot.startTime[1], // For proper sorting
@@ -168,16 +155,20 @@ function BookTicket() {
 
     // Get the selected date object for complete date information
     const selectedDateObj = dates.find((d) => d.date === selectedDate);
-   
-    // Navigate directly to seat selection
-    navigate(`/movies/${id}/seat-selection`, {
-      state: {
-        movie,
-        selectedDateObj: selectedDateObj, // Complete date object with day, month, year
-        selectedTimeWithAmPm: `${time}${amPm}`, // Full time with AM/PM
-        selectedCinema: slot,
-      },
-    });
+
+    // Store booking data in Redux
+    const bookingData = {
+      movie,
+      selectedDateObj: selectedDateObj, // Complete date object with day, month, year
+      selectedTimeWithAmPm: `${time}${amPm}`, // Full time with AM/PM
+      selectedCinema: slot,
+    };
+
+    dispatch(setBookingData(bookingData));
+    dispatch(setBookingStep('seat-selection'));
+
+    // Navigate to seat selection (no state needed now)
+    navigate(`/movies/${id}/seat-selection`);
   };
 
   if (!movie) {
@@ -297,7 +288,7 @@ function BookTicket() {
                                     selectedTime === showtime.time &&
                                     selectedCinema?.slotId === showtime.slotId
                                       ? "border-primary bg-primary text-white"
-                                      : "border-gray-500 bg-gray-600 text-white hover:border-primary/50 hover:bg-gray-500"
+                                      : "border-gray-500 bg-gray-600 text-white  hover:bg-primary"
                                   }`}
                                 >
                                   {showtime.time}

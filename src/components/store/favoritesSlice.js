@@ -43,7 +43,7 @@ export const addToFavorites = createAsyncThunk(
                 throw new Error('No token available');
             }
 
-            const response = await api.post(`/api/user/favorites/${movieId}`, {}, {
+            const response = await api.post(`/api/user/favorites/${movieId}`, {
                 headers: {
                     "Authorization": `Bearer ${token}`
                 }

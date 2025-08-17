@@ -17,6 +17,8 @@ import {
 import Trailer from "../components/Trailer";
 import FavoriteButton from "../components/FavoriteButton";
 import BookTicket from "../components/BookTicket";
+import { useAuthModalContext } from "../hooks/useAuthModalContext";
+import AuthModal from "../components/auth/AuthModal";
 
 function MovieDetails() {
   const { id } = useParams();
@@ -27,6 +29,13 @@ function MovieDetails() {
   const [isExpanded, setIsExpanded] = useState(false);
   const [isMobileView, setIsMobileView] = useState(false);
   const [activeTab, setActiveTab] = useState("bookTicket"); // Track active tab
+
+  const {
+    isAuthModalOpen,
+    authModalTab,
+    closeAuthModal,
+    switchAuthTab,
+  } = useAuthModalContext();
 
   const movies = useSelector(selectAllMovies);
   const movie = movies.find((m) => m.id === parseInt(id));
@@ -160,7 +169,7 @@ function MovieDetails() {
           {/* Back Button - Above Image */}
           <div className="absolute top-4 left-4 z-20">
             <button
-              onClick={() => navigate(-1)}
+              onClick={() => navigate("/movies")}
               className="flex items-center gap-2 font-extrabold text-white p-2 rounded-lg cursor-pointer transition-all duration-300 hover:scale-110 backdrop-blur-md bg-black/30"
             >
               <ArrowLeftIcon className="w-6 h-6" />
@@ -321,7 +330,7 @@ function MovieDetails() {
           {/* Back Button */}
           <div className="mb-6">
             <button
-              onClick={() => navigate(-1)}
+              onClick={() => navigate("/movies")}
               className="flex items-center gap-2 font-extrabold text-white p-3 rounded-full cursor-pointer transition-all duration-300 hover:scale-110 backdrop-blur-sm "
             >
               <ArrowLeftIcon className="w-6 h-6" />
@@ -453,6 +462,14 @@ function MovieDetails() {
         isOpen={showTrailer}
         onClose={() => setShowTrailer(false)}
         movie={movie}
+      />
+      
+      {/* Auth Modal */}
+      <AuthModal
+        isOpen={isAuthModalOpen}
+        onClose={closeAuthModal}
+        activeTab={authModalTab}
+        onTabChange={switchAuthTab}
       />
     </div>
   );

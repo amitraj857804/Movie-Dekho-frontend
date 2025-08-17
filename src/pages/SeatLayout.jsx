@@ -1,27 +1,36 @@
 import React, { useState, useEffect } from "react";
-import { useLocation, useNavigate, useParams } from "react-router-dom";
-import {
-  ArrowLeftIcon,
-  XMarkIcon,
-  
-} from "@heroicons/react/24/outline";
+import { useNavigate, useParams } from "react-router-dom";
+import { ArrowLeftIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import { FaChair } from "react-icons/fa";
 import api from "../api/api";
 import { selectToken } from "../components/store/authSlice";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
+import { useAuthModalContext } from "../hooks/useAuthModalContext";
+import AuthModal from "../components/auth/AuthModal";
+import toast from "react-hot-toast";
+import {
+  selectCurrentBooking,
+  setBookingData,
+  setBookingStep,
+  updateSelectedSeats,
+  clearSelectedSeats,
+} from "../components/store/bookingSlice";
 
 function SeatLayout() {
-  const location = useLocation();
   const navigate = useNavigate();
   const { id } = useParams();
+  const dispatch = useDispatch();
   const token = useSelector(selectToken);
 
-  // Get booking details from navigation state
-  const bookingDetails = location.state || {};
-  const { movie, selectedDateObj, selectedTimeWithAmPm, selectedCinema } =
-    bookingDetails;
+  // Get booking data from Redux store
+  const currentBooking = useSelector(selectCurrentBooking);
 
-  console.log(selectedDateObj);
+  const { isAuthModalOpen, authModalTab, closeAuthModal, switchAuthTab } =
+    useAuthModalContext();
+
+  // Extract booking details from Redux store
+  const { movie, selectedDateObj, selectedTimeWithAmPm, selectedCinema } =
+    currentBooking || {};
 
   // State management
   const [seats, setSeats] = useState([]);
@@ -29,6 +38,43 @@ function SeatLayout() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [ticketCount, setTicketCount] = useState(10);
+  const [isBookingConfirming, setIsBookingConfirming] = useState(false);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
+
+  // Redirect if no booking data is available
+  useEffect(() => {
+    if (!currentBooking || !movie || !selectedCinema) {
+      toast.error("No booking details found. Please start over.");
+      navigate(`/movies/${id}`);
+      return;
+    }
+  }, [currentBooking, movie, selectedCinema, navigate, id]);
+
+  // Clear selected seats when returning to seat selection (recommended)
+  useEffect(() => {
+    // Clear only seat selections when user enters seat selection
+    // This preserves movie/show data for better UX
+    dispatch(clearSelectedSeats());
+    setSelectedSeats([]);
+
+    // Clear payment timer so it restarts fresh when user goes to payment
+    localStorage.removeItem("paymentTimer");
+    localStorage.removeItem("paymentStartTime");
+    localStorage.removeItem("payment_timer_start");
+
+    // Clear payment session flag to prevent false refresh detection
+    localStorage.removeItem("payment_session_active");
+
+    // Force refresh seats when component mounts (handles payment cancellation)
+    setRefreshTrigger((prev) => prev + 1);
+  }, [dispatch]);
+
+  // Sync local selectedSeats with Redux store
+  useEffect(() => {
+    if (currentBooking?.selectedSeats) {
+      setSelectedSeats(currentBooking.selectedSeats);
+    }
+  }, [currentBooking?.selectedSeats]);
 
   useEffect(() => {
     if (!loading) {
@@ -47,12 +93,7 @@ function SeatLayout() {
         setLoading(true);
         // Use the slot ID from selectedCinema or fallback to a default
         const slotId = selectedCinema?.slotId || selectedCinema?.id || 12;
-        const response = await api.get(`api/seats/slot/${slotId}`, {
-          headers: {
-            Accept: "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        });
+        const response = await api.get(`api/seats/slot/${slotId}`);
 
         setSeats(response.data);
       } catch (err) {
@@ -69,7 +110,7 @@ function SeatLayout() {
       setLoading(false);
       setError("No slot ID available");
     }
-  }, [selectedCinema, token]);
+  }, [selectedCinema, token, refreshTrigger]);
 
   // Handle seat selection
   const handleSeatClick = (seat) => {
@@ -80,27 +121,43 @@ function SeatLayout() {
     const seatId = seat.id || seat.seatId;
     const isSelected = selectedSeats.find((s) => (s.id || s.seatId) === seatId);
 
+    let newSelectedSeats;
     if (isSelected) {
       // Remove seat from selection
-      setSelectedSeats(
-        selectedSeats.filter((s) => (s.id || s.seatId) !== seatId)
+      newSelectedSeats = selectedSeats.filter(
+        (s) => (s.id || s.seatId) !== seatId
       );
     } else {
       // Add seat to selection (limit based on ticket count)
       if (selectedSeats.length < ticketCount) {
-        setSelectedSeats([...selectedSeats, seat]);
+        newSelectedSeats = [...selectedSeats, seat];
+      } else {
+        toast.error(`You can only select up to ${ticketCount} seats`);
+        return;
       }
     }
+
+    // Update local state
+    setSelectedSeats(newSelectedSeats);
+
+    // Update Redux store
+    dispatch(updateSelectedSeats(newSelectedSeats));
   };
-  console.log(selectedSeats);
+
+  // Handle back navigation - clear selected seats (recommended approach)
+  const handleBackNavigation = () => {
+    dispatch(clearSelectedSeats());
+    navigate(`/movies/${id}`);
+  };
+
   // Get seat status for styling
   const getSeatClass = (seat) => {
     const seatId = seat.id || seat.seatId;
     const isSelected = selectedSeats.find((s) => (s.id || s.seatId) === seatId);
-    const isBooked = seat.isBooked || seat.status === "BOOKED";
+    const isBooked = seat.booked || seat.status === "BOOKED";
 
     if (isBooked) {
-      return "bg-red-500 cursor-not-allowed opacity-50";
+      return "bg-red-500 cursor-not-allowed opacity-50 ";
     } else if (isSelected) {
       return "bg-primary border-1 border-primary-light cursor-pointer";
     } else {
@@ -108,36 +165,63 @@ function SeatLayout() {
     }
   };
 
-  // Calculate total price
-  const calculateTotal = () => {
-    const totalSeatPrice = selectedSeats.reduce(
-      (total, seat) => total + seat.price,
-      0
-    );
-
-    const convenienceFee = selectedSeats.reduce(
-      (total, seats) => total + seats.price * 0.02,
-      0
-    );
-    return totalSeatPrice + convenienceFee;
-  };
-
   // Handle booking confirmation
-  const handleBookingConfirm = () => {
-    if (selectedSeats.length === 0) {
-      alert("Please select at least one seat");
+  const handleBookingConfirm = async () => {
+    if (!token) {
+      toast.error("Please login to continue booking");
       return;
     }
 
-    // Navigate to payment or confirmation page
-    navigate("/payment", {
-      state: {
-        ...bookingDetails,
-        selectedSeats,
-        totalAmount: calculateTotal(),
-        seatPrice: selectedCinema?.price || 250,
-      },
-    });
+    if (selectedSeats.length === 0) {
+      toast.error("Please select at least one seat");
+      return;
+    }
+
+    setIsBookingConfirming(true);
+
+    // Prepare payload for API
+    const payload = {
+      slotId: selectedCinema?.slotId || selectedCinema?.id,
+      seatNumbers: selectedSeats.map((seat) => seat.seatNumber),
+    };
+
+    try {
+      const bookingData = await api.post("/api/bookings/select-seats", payload);
+
+      // Update Redux store with booking response and selected seats
+      dispatch(
+        setBookingData({
+          ...currentBooking,
+          selectedSeats,
+          totalAmount: selectedSeats.reduce(
+            (total, seat) => total + seat.price,
+            0
+          ),
+          bookingResponse: bookingData.data,
+        })
+      );
+
+      // Move to payment step
+      dispatch(setBookingStep("payment"));
+
+      // Navigate to payment (no state needed, using Redux)
+      navigate("/payment");
+    } catch (error) {
+      console.error("Booking error:", error);
+      if (error.response?.status === 409) {
+        toast.error(
+          "Some of the selected seats are no longer available. Please choose different seats."
+        );
+        // Refresh seat layout to show updated availability
+      } else {
+        toast.error(
+          error.response?.data?.message ||
+            "Failed to book seats. Please try again."
+        );
+      }
+    } finally {
+      setIsBookingConfirming(false);
+    }
   };
 
   // Group seats by row for better display
@@ -195,7 +279,7 @@ function SeatLayout() {
           </h2>
           <p className="text-gray-400 mb-6">{error}</p>
           <button
-            onClick={() => navigate(-1)}
+            onClick={handleBackNavigation}
             className="bg-primary hover:bg-primary/90 text-white px-6 py-3 rounded-lg transition-colors"
           >
             Go Back
@@ -218,17 +302,17 @@ function SeatLayout() {
       <div className=" container  min-h-screen mx-auto max-w-6xl top-18 relative mb-8">
         {/* Header */}
         <div className="mb-8">
-          {/* Back Button and Title */}
+          
 
-          {/* Steps Indicator */}
           <div className="bg-gray-800 rounded-lg p-4 mb-6 flex">
+            {/* Back Button  */}
             <button
-              onClick={() => navigate(-1)}
+              onClick={handleBackNavigation}
               className="p-2 rounded-lg bg-gray-800 hover:bg-gray-700 transition-colors cursor-pointer mr-2 "
             >
               <ArrowLeftIcon className="w-6 h-6 text-white" />
             </button>
-
+            {/* Steps Indicator */}
             {/* Desktop Steps */}
             <div className="hidden md:flex items-center justify-between max-w-2xl mx-auto sm:w-[90%]">
               {/* Step 1: Movie & Show */}
@@ -412,12 +496,12 @@ function SeatLayout() {
                                   seat.isBooked || seat.status === "BOOKED"
                                 }
                                 title={`${seat.seatNumber || seat.number} - ${
-                                  seat.isBooked || seat.status === "BOOKED"
+                                  seat.booked || seat.status === "BOOKED"
                                     ? "Booked"
                                     : "Available"
                                 }`}
                               >
-                               <FaChair/>
+                                <FaChair />
                               </button>
                             ))}
 
@@ -509,28 +593,18 @@ function SeatLayout() {
               {selectedSeats.length > 0 && (
                 <div className="mb-6 space-y-2">
                   <div className="flex justify-between text-gray-300">
-                    <span>Seats ({selectedSeats.length})</span>
-                    <span>
-                      ₹
-                      {selectedSeats.reduce(
-                        (total, seat) => total + (seat.price || 0),
-                        0
-                      )}
-                    </span>
+                    <span>{selectedSeats.length} Seats </span>
                   </div>
-                  <div className="flex justify-between text-gray-300">
-                    <span>Convenience Fee</span>
-                    <span>
-                      ₹
-                      {selectedSeats.reduce(
-                        (total, seats) => total + seats.price * 0.02,
-                        0
-                      )}
-                    </span>
-                  </div>
+
                   <div className="flex justify-between text-lg font-bold text-white border-t border-gray-600 pt-2">
                     <span>Total</span>
-                    <span className="text-primary">₹{calculateTotal()}</span>
+                    <span className="text-primary">
+                      ₹
+                      {selectedSeats.reduce(
+                        (total, seat) => total + seat.price,
+                        0
+                      )}
+                    </span>
                   </div>
                 </div>
               )}
@@ -538,21 +612,35 @@ function SeatLayout() {
               {/* Proceed Button */}
               <button
                 onClick={handleBookingConfirm}
-                disabled={selectedSeats.length === 0}
-                className={`w-full py-3 rounded-lg font-semibold transition-all duration-300  cursor-pointer ${
-                  selectedSeats.length > 0
+                disabled={selectedSeats.length === 0 || isBookingConfirming}
+                className={`w-full py-3 rounded-lg font-semibold transition-all duration-300 cursor-pointer ${
+                  selectedSeats.length > 0 && !isBookingConfirming
                     ? "bg-primary hover:bg-primary/90 text-white hover:scale-105"
                     : "bg-gray-600 text-gray-400 cursor-not-allowed"
                 }`}
               >
-                {selectedSeats.length > 0
-                  ? "Proceed to Payment"
-                  : "Select Seats"}
+                {isBookingConfirming ? (
+                  <div className="flex items-center justify-center">
+                    <div className="w-5 h-5 border-2 border-primary/30 border-t-primary rounded-full animate-spin"></div>
+                  </div>
+                ) : selectedSeats.length > 0 ? (
+                  "Proceed to Payment"
+                ) : (
+                  "Select Seats"
+                )}
               </button>
             </div>
           </div>
         </div>
       </div>
+
+      {/* Auth Modal */}
+      <AuthModal
+        isOpen={isAuthModalOpen}
+        onClose={closeAuthModal}
+        activeTab={authModalTab}
+        onTabChange={switchAuthTab}
+      />
     </div>
   );
 }
