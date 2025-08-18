@@ -9,6 +9,9 @@ import {
   ArrowLeftIcon,
   ShareIcon,
   FilmIcon,
+  ClipboardDocumentIcon,
+  CheckIcon,
+  XMarkIcon,
 } from "@heroicons/react/24/solid";
 import {
   selectAllMovies,
@@ -19,6 +22,7 @@ import FavoriteButton from "../components/FavoriteButton";
 import BookTicket from "../components/BookTicket";
 import { useAuthModalContext } from "../hooks/useAuthModalContext";
 import AuthModal from "../components/auth/AuthModal";
+import toast from "react-hot-toast";
 
 function MovieDetails() {
   const { id } = useParams();
@@ -29,6 +33,8 @@ function MovieDetails() {
   const [isExpanded, setIsExpanded] = useState(false);
   const [isMobileView, setIsMobileView] = useState(false);
   const [activeTab, setActiveTab] = useState("bookTicket"); // Track active tab
+  const [showShareDialog, setShowShareDialog] = useState(false);
+  const [copiedToClipboard, setCopiedToClipboard] = useState(false);
 
   const {
     isAuthModalOpen,
@@ -141,7 +147,6 @@ function MovieDetails() {
     });
   };
 
-
   const handleWatchTrailer = (movie) => {
     setShowTrailer(true);
   };
@@ -158,6 +163,75 @@ function MovieDetails() {
       return description;
     }
     return description.slice(0, 100) + "...";
+  };
+
+  // Share functionality handlers
+  const handleShareClick = () => {
+    setShowShareDialog(true);
+  };
+
+  const closeShareDialog = () => {
+    setShowShareDialog(false);
+    setCopiedToClipboard(false);
+  };
+
+  const copyToClipboard = async () => {
+    const movieUrl = window.location.href;
+    try {
+      await navigator.clipboard.writeText(movieUrl);
+      setCopiedToClipboard(true);
+      toast.success('Link copied to clipboard!');
+      setTimeout(() => setCopiedToClipboard(false), 2000);
+    } catch (err) {
+      console.error('Failed to copy: ', err);
+      // Fallback for older browsers
+      const textArea = document.createElement("textarea");
+      textArea.value = movieUrl;
+      document.body.appendChild(textArea);
+      textArea.focus();
+      textArea.select();
+      try {
+        document.execCommand('copy');
+        setCopiedToClipboard(true);
+        toast.success('Link copied to clipboard!');
+        setTimeout(() => setCopiedToClipboard(false), 2000);
+      } catch (fallbackErr) {
+        console.error('Fallback copy failed: ', fallbackErr);
+        toast.error('Failed to copy link');
+      }
+      document.body.removeChild(textArea);
+    }
+  };
+
+  const shareOnSocialMedia = (platform) => {
+    const movieUrl = encodeURIComponent(window.location.href);
+    const movieTitle = encodeURIComponent(movie?.title || 'Check out this movie');
+    const movieDescription = encodeURIComponent(movie?.description || 'Watch this amazing movie');
+    
+    let shareUrl = '';
+    
+    switch (platform) {
+      case 'facebook':
+        shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${movieUrl}`;
+        break;
+      case 'twitter':
+        shareUrl = `https://twitter.com/intent/tweet?url=${movieUrl}&text=${movieTitle}`;
+        break;
+      case 'whatsapp':
+        shareUrl = `https://wa.me/?text=${movieTitle}%20${movieUrl}`;
+        break;
+      case 'telegram':
+        shareUrl = `https://t.me/share/url?url=${movieUrl}&text=${movieTitle}`;
+        break;
+      case 'linkedin':
+        shareUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${movieUrl}`;
+        break;
+      default:
+        return;
+    }
+    
+    window.open(shareUrl, '_blank', 'width=600,height=400');
+    closeShareDialog();
   };
 
   // Mobile View Layout
@@ -217,7 +291,10 @@ function MovieDetails() {
                 showTooltip={true}
               />
 
-              <button className="flex items-center justify-center bg-white/20 hover:bg-white/30 text-white p-2 rounded-full font-semibold transition-all duration-300 hover:scale-105 cursor-pointer backdrop-blur-sm border border-white/20">
+              <button 
+                onClick={handleShareClick}
+                className="flex items-center justify-center bg-white/20 hover:bg-white/30 text-white p-2 rounded-full font-semibold transition-all duration-300 hover:scale-105 cursor-pointer backdrop-blur-sm border border-white/20"
+              >
                 <ShareIcon className="w-5 h-5" />
               </button>
             </div>
@@ -442,7 +519,10 @@ function MovieDetails() {
                         showTooltip={true}
                       />
 
-                      <button className="flex items-center justify-center gap-3 bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-full font-semibold transition-all duration-300 hover:scale-105 cursor-pointer backdrop-blur-sm border border-white/20">
+                      <button 
+                        onClick={handleShareClick}
+                        className="flex items-center justify-center gap-3 bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-full font-semibold transition-all duration-300 hover:scale-105 cursor-pointer backdrop-blur-sm border border-white/20"
+                      >
                         <ShareIcon className="w-4 h-4" />
                       </button>
                     </div>
@@ -471,6 +551,119 @@ function MovieDetails() {
         activeTab={authModalTab}
         onTabChange={switchAuthTab}
       />
+
+      {/* Share Dialog */}
+      {showShareDialog && (
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 px-4">
+          <div className="bg-gray-800 rounded-xl p-6 max-w-md w-full border border-gray-600">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-white">
+                Share Movie
+              </h3>
+              <button
+                onClick={closeShareDialog}
+                className="text-gray-400 hover:text-white transition-colors"
+              >
+                <XMarkIcon className="w-6 h-6" />
+              </button>
+            </div>
+
+            <div className="mb-4">
+              <p className="text-gray-300 text-sm mb-3">
+                Share "{movie?.title}" with your friends
+              </p>
+              
+              {/* Copy Link Section */}
+              <div className="bg-gray-700 rounded-lg p-3 mb-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex-1 mr-3">
+                    <p className="text-gray-400 text-xs mb-1">Movie Link</p>
+                    <p className="text-white text-sm truncate">
+                      {window.location.href}
+                    </p>
+                  </div>
+                  <button
+                    onClick={copyToClipboard}
+                    className={`flex items-center gap-2 px-3 py-2 rounded-md transition-all duration-300 ${
+                      copiedToClipboard
+                        ? 'bg-green-600 text-white'
+                        : 'bg-primary hover:bg-primary/90 text-white'
+                    }`}
+                  >
+                    {copiedToClipboard ? (
+                      <>
+                        <CheckIcon className="w-4 h-4" />
+                        <span className="text-sm">Copied!</span>
+                      </>
+                    ) : (
+                      <>
+                        <ClipboardDocumentIcon className="w-4 h-4" />
+                        <span className="text-sm">Copy</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Social Media Sharing */}
+            <div>
+              <p className="text-gray-400 text-sm mb-3">Share on social media</p>
+              <div className="grid grid-cols-2 gap-3">
+                <button
+                  onClick={() => shareOnSocialMedia('facebook')}
+                  className="flex items-center gap-3 p-3 bg-[#1877F2] hover:bg-[#1877F2]/90 text-white rounded-lg transition-colors"
+                >
+                  <div className="w-5 h-5 bg-white rounded-sm flex items-center justify-center">
+                    <span className="text-[#1877F2] font-bold text-sm">f</span>
+                  </div>
+                  <span className="font-medium">Facebook</span>
+                </button>
+
+                <button
+                  onClick={() => shareOnSocialMedia('twitter')}
+                  className="flex items-center gap-3 p-3 bg-[#1DA1F2] hover:bg-[#1DA1F2]/90 text-white rounded-lg transition-colors"
+                >
+                  <div className="w-5 h-5 bg-white rounded-sm flex items-center justify-center">
+                    <span className="text-[#1DA1F2] font-bold text-sm">𝕏</span>
+                  </div>
+                  <span className="font-medium">Twitter</span>
+                </button>
+
+                <button
+                  onClick={() => shareOnSocialMedia('whatsapp')}
+                  className="flex items-center gap-3 p-3 bg-[#25D366] hover:bg-[#25D366]/90 text-white rounded-lg transition-colors"
+                >
+                  <div className="w-5 h-5 bg-white rounded-sm flex items-center justify-center">
+                    <span className="text-[#25D366] font-bold text-xs">W</span>
+                  </div>
+                  <span className="font-medium">WhatsApp</span>
+                </button>
+
+                <button
+                  onClick={() => shareOnSocialMedia('telegram')}
+                  className="flex items-center gap-3 p-3 bg-[#0088CC] hover:bg-[#0088CC]/90 text-white rounded-lg transition-colors"
+                >
+                  <div className="w-5 h-5 bg-white rounded-sm flex items-center justify-center">
+                    <span className="text-[#0088CC] font-bold text-sm">T</span>
+                  </div>
+                  <span className="font-medium">Telegram</span>
+                </button>
+
+                <button
+                  onClick={() => shareOnSocialMedia('linkedin')}
+                  className="flex items-center gap-3 p-3 bg-[#0A66C2] hover:bg-[#0A66C2]/90 text-white rounded-lg transition-colors col-span-2"
+                >
+                  <div className="w-5 h-5 bg-white rounded-sm flex items-center justify-center">
+                    <span className="text-[#0A66C2] font-bold text-sm">in</span>
+                  </div>
+                  <span className="font-medium">LinkedIn</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -5,7 +5,7 @@ import { clearToken } from "./authSlice"; // Import the logout action
 // Async thunk for fetching user's favorite movies
 export const fetchFavoriteMovies = createAsyncThunk(
     'favorites/fetchFavoriteMovies',
-    async (_, { getState, rejectWithValue }) => {
+    async (_, { getState, rejectWithValue, dispatch }) => {
         try {
             const state = getState();
             const token = state.auth.token;
@@ -22,6 +22,13 @@ export const fetchFavoriteMovies = createAsyncThunk(
 
             return response.data;
         } catch (error) {
+            // Handle 403 Forbidden - token might be expired
+            if (error.response?.status === 403) {
+                console.log('403 Forbidden - Token might be expired, clearing auth state');
+                dispatch(clearToken());
+                return rejectWithValue('Authentication expired. Please login again.');
+            }
+            
             const errorMessage = error.response?.data?.error || 
                                error.response?.data?.message || 
                                error.message || 
@@ -34,7 +41,7 @@ export const fetchFavoriteMovies = createAsyncThunk(
 // Async thunk for adding a movie to favorites
 export const addToFavorites = createAsyncThunk(
     'favorites/addToFavorites',
-    async ({ movieId, movieData }, { getState, rejectWithValue }) => {
+    async ({ movieId, movieData }, { getState, rejectWithValue, dispatch }) => {
         try {
             const state = getState();
             const token = state.auth.token;
@@ -43,7 +50,7 @@ export const addToFavorites = createAsyncThunk(
                 throw new Error('No token available');
             }
 
-            const response = await api.post(`/api/user/favorites/${movieId}`, {
+            const response = await api.post(`/api/user/favorites/${movieId}`, {}, {
                 headers: {
                     "Authorization": `Bearer ${token}`
                 }
@@ -51,6 +58,13 @@ export const addToFavorites = createAsyncThunk(
 
             return { movieId, movieData, message: response.data };
         } catch (error) {
+            // Handle 403 Forbidden - token might be expired
+            if (error.response?.status === 403) {
+                console.log('403 Forbidden - Token might be expired, clearing auth state');
+                dispatch(clearToken());
+                return rejectWithValue('Authentication expired. Please login again.');
+            }
+            
             const errorMessage = error.response?.data?.error || 
                                error.response?.data?.message || 
                                error.message || 
@@ -63,7 +77,7 @@ export const addToFavorites = createAsyncThunk(
 // Async thunk for removing a movie from favorites
 export const removeFromFavorites = createAsyncThunk(
     'favorites/removeFromFavorites',
-    async (movieId, { getState, rejectWithValue }) => {
+    async (movieId, { getState, rejectWithValue, dispatch }) => {
         try {
             const state = getState();
             const token = state.auth.token;
@@ -80,6 +94,13 @@ export const removeFromFavorites = createAsyncThunk(
 
             return { movieId, message: response.data };
         } catch (error) {
+            // Handle 403 Forbidden - token might be expired
+            if (error.response?.status === 403) {
+                console.log('403 Forbidden - Token might be expired, clearing auth state');
+                dispatch(clearToken());
+                return rejectWithValue('Authentication expired. Please login again.');
+            }
+            
             const errorMessage = error.response?.data?.message || error.message || 'Failed to remove from favorites';
             return rejectWithValue(errorMessage);
         }

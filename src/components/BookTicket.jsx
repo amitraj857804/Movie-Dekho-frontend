@@ -200,7 +200,7 @@ function BookTicket() {
               Select Date
             </h2>
             {dates.length > 0 ? (
-              <div className="grid grid-cols-5 gap-4 sm:w-[35%]">
+              <div className="grid grid-cols-5 gap-4 md:w-[45%] lg:w-[35%]">
                 {dates.map((dateObj) => (
                   <button
                     key={dateObj.fullDate}

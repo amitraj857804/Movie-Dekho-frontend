@@ -24,6 +24,7 @@ function Payment() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const token = useSelector(selectToken);
+  const [isOpenConvenince, setIsOpenConvenince] = useState(false);
 
   // Get booking data from Redux store
   const currentBooking = useSelector(selectCurrentBooking);
@@ -36,7 +37,6 @@ function Payment() {
     selectedTimeWithAmPm,
     selectedCinema,
     selectedSeats,
-    totalAmount,
     bookingResponse,
   } = currentBooking || {};
 
@@ -57,6 +57,8 @@ function Payment() {
   const [showExitWarning, setShowExitWarning] = useState(false);
   const [pendingNavigation, setPendingNavigation] = useState(null);
   const [successBookingData, setSuccessBookingData] = useState(null); // Preserve booking data for success screen
+  const [showTimeoutDialog, setShowTimeoutDialog] = useState(false); // Timer expiration dialog
+  const [showRefreshWarning, setShowRefreshWarning] = useState(false); // Page refresh warning dialog
 
   // Timer for payment timeout - persistent across page refreshes
   const [timeLeft, setTimeLeft] = useState(600); // 10 minutes
@@ -64,7 +66,7 @@ function Payment() {
   const TIMER_KEY = "payment_timer_start";
   const startTimeRef = useRef(null);
 
-    // Scroll to top after loading is complete or when movie ID changes
+  // Scroll to top after loading is complete or when movie ID changes
   useEffect(() => {
     if (!isProcessing) {
       window.scrollTo({
@@ -73,7 +75,7 @@ function Payment() {
         behavior: "smooth",
       });
     }
-  }, [ isProcessing]);
+  }, [isProcessing]);
 
   // Redirect if no booking data (with delay to allow Redux hydration)
   useEffect(() => {
@@ -126,10 +128,9 @@ function Payment() {
 
       return () => clearTimeout(timer);
     } else if (timeLeft === 0) {
-      // Clear timer when expired
+      // Clear timer when expired and show timeout dialog
       localStorage.removeItem(TIMER_KEY);
-      toast.error("Payment session expired. Please start over.");
-      navigate("/movies");
+      setShowTimeoutDialog(true);
     }
   }, [timeLeft, paymentSuccess, navigate]);
 
@@ -172,24 +173,61 @@ function Payment() {
       localStorage.setItem(PAYMENT_SESSION_KEY, "true");
     }
 
-    // Add beforeunload event ONLY for page refresh warning
-    const handleBeforeUnload = (e) => {
-      // Only show browser warning for refresh/close, not for navigation
+    // Add keyboard event listener for refresh detection (F5, Ctrl+R)
+    const handleKeyDown = (e) => {
       if (
         !paymentSuccess &&
         !isProcessing &&
         currentBooking &&
-        selectedSeats?.length > 0
+        selectedSeats?.length > 0 &&
+        !showRefreshWarning
       ) {
-        e.preventDefault();
-        e.returnValue = ""; // Required for Chrome
-        return ""; // Some browsers might show a generic message
+        // F5 key
+        if (e.key === "F5") {
+          e.preventDefault();
+          setShowRefreshWarning(true);
+          return;
+        }
+
+        // Ctrl+R or Cmd+R
+        if ((e.ctrlKey || e.metaKey) && e.key === "r") {
+          e.preventDefault();
+          setShowRefreshWarning(true);
+          return;
+        }
       }
     };
 
+    // Add beforeunload event for other refresh methods (browser button, etc.)
+    const handleBeforeUnload = (e) => {
+      // Only show warning for refresh/close, not for navigation
+      if (
+        !paymentSuccess &&
+        !isProcessing &&
+        currentBooking &&
+        selectedSeats?.length > 0 &&
+        !showRefreshWarning
+      ) {
+        // Prevent the default browser behavior
+        e.preventDefault();
+        e.returnValue =
+          "Transaction will be cancelled if you refresh or leave this page.";
+
+        // Show our custom dialog with a small delay
+        setTimeout(() => {
+          setShowRefreshWarning(true);
+        }, 100);
+
+        return "Transaction will be cancelled if you refresh or leave this page.";
+      }
+    };
+
+    // Add event listeners
+    document.addEventListener("keydown", handleKeyDown);
     window.addEventListener("beforeunload", handleBeforeUnload);
 
     return () => {
+      document.removeEventListener("keydown", handleKeyDown);
       window.removeEventListener("beforeunload", handleBeforeUnload);
       // Clean up session flag when component unmounts normally
       localStorage.removeItem(PAYMENT_SESSION_KEY);
@@ -202,6 +240,7 @@ function Payment() {
     currentBooking,
     movie,
     selectedSeats,
+    showRefreshWarning,
   ]);
 
   // Format time left
@@ -252,6 +291,37 @@ function Payment() {
   const cancelExit = () => {
     setShowExitWarning(false);
     setPendingNavigation(null);
+  };
+
+  // Handle timer timeout dialog
+  const handleTimeoutGoHome = () => {
+    setShowTimeoutDialog(false);
+    dispatch(clearBooking());
+    navigate("/");
+  };
+
+  const handleTimeoutBrowseMovies = () => {
+    setShowTimeoutDialog(false);
+    dispatch(clearBooking());
+    navigate("/movies");
+  };
+
+  // Handle refresh warning dialog
+  const handleRefreshCancel = () => {
+    setShowRefreshWarning(false);
+  };
+
+  const handleRefreshConfirm = () => {
+    setShowRefreshWarning(false);
+    // Cancel transaction and clear data
+    toast.error(
+      "Transaction cancelled due to page refresh. Please start over."
+    );
+    localStorage.removeItem("payment_session_active");
+    localStorage.removeItem(TIMER_KEY);
+    dispatch(clearBooking());
+    // Navigate to movies page instead of forcing refresh
+    navigate("/movies");
   };
 
   // Handle form input changes
@@ -419,7 +489,8 @@ function Payment() {
   // Calculate breakdown using Redux data
   const seatTotal = bookingResponse.ticketFee;
   const convenienceFee = bookingResponse.convenienceFee;
-  const taxes = Math.round(seatTotal * 0.18); // 18% GST
+  const base = ((seatTotal * 7) / 100).toFixed(2);
+  const taxes = base * 0.18;
   const finalTotal = seatTotal + convenienceFee;
 
   // Payment success screen
@@ -456,7 +527,9 @@ function Payment() {
                     ✓
                   </div>
                   <div className="ml-3">
-                    <p className="text-sm font-medium text-white">Movie & Show</p>
+                    <p className="text-sm font-medium text-white">
+                      Movie & Show
+                    </p>
                     <p className="text-xs text-green-400">Completed</p>
                   </div>
                 </div>
@@ -470,7 +543,9 @@ function Payment() {
                     ✓
                   </div>
                   <div className="ml-3">
-                    <p className="text-sm font-medium text-white">Select Seats</p>
+                    <p className="text-sm font-medium text-white">
+                      Select Seats
+                    </p>
                     <p className="text-xs text-green-400">Completed</p>
                   </div>
                 </div>
@@ -498,7 +573,9 @@ function Payment() {
                     ✓
                   </div>
                   <div className="ml-3">
-                    <p className="text-sm font-medium text-white">Confirmation</p>
+                    <p className="text-sm font-medium text-white">
+                      Confirmation
+                    </p>
                     <p className="text-xs text-green-400">Completed</p>
                   </div>
                 </div>
@@ -550,8 +627,10 @@ function Payment() {
           <div className="max-w-md mx-auto">
             <div className="bg-gray-800 rounded-xl p-8 text-center">
               <div className="bg-gray-700 rounded-lg p-4 mb-6 text-left">
-                <h3 className="text-white font-semibold mb-4">Booking Details</h3>
-                
+                <h3 className="text-white font-semibold mb-4">
+                  Booking Details
+                </h3>
+
                 {/* Movie Info with Thumbnail */}
                 <div className="flex gap-4 mb-4">
                   <img
@@ -575,7 +654,7 @@ function Payment() {
                     </p>
                   </div>
                 </div>
-                
+
                 {/* Seats and Total */}
                 <div className="border-t border-gray-600 pt-3">
                   <p className="text-gray-300 text-sm mb-2">
@@ -587,7 +666,10 @@ function Payment() {
                     </span>
                   </p>
                   <p className="text-gray-300 text-sm">
-                    Total: <span className="text-primary font-semibold text-lg">₹{displayData.finalTotal}</span>
+                    Total:{" "}
+                    <span className="text-primary font-semibold text-lg">
+                      ₹{displayData.finalTotal}
+                    </span>
                   </p>
                 </div>
               </div>
@@ -614,7 +696,7 @@ function Payment() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-900 pt-20 px-6">
+    <div className="min-h-screen bg-gray-900 pt-18 px-6 pb-10">
       <div className="container mx-auto max-w-6xl">
         {/* Header */}
         <div className="mb-8">
@@ -627,11 +709,11 @@ function Payment() {
               }
               className="p-2 rounded-lg bg-gray-800 hover:bg-gray-700 transition-colors cursor-pointer mr-2 "
             >
-              <ArrowLeftIcon className="w-5 h-5 " />
+              <ArrowLeftIcon className="w-5 h-5 text-white " />
             </button>
             {/* Progress Steps */}
             {/* Desktop Steps */}
-            <div className="hidden md:flex items-center justify-between max-w-2xl mx-auto">
+            <div className="hidden md:flex items-center justify-between max-w-2xl mx-auto sm:w-[90%]">
               {/* Step 1: Movie & Show */}
               <div className="flex items-center">
                 <div className="flex items-center justify-center w-8 h-8 bg-primary text-white rounded-full text-sm font-medium">
@@ -859,7 +941,7 @@ function Payment() {
 
               {/* UPI Payment Form */}
               {paymentMethod === "upi" && (
-                <div >
+                <div>
                   {/* <label className="block text-gray-300 text-sm font-medium mb-2">
                     UPI ID
                   </label>
@@ -872,7 +954,9 @@ function Payment() {
                     className="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:border-primary focus:outline-none"
                   /> */}
 
-                  <p className="text-center">UPI payment is currently not available</p>
+                  <p className="text-center">
+                    UPI payment is currently not available
+                  </p>
                 </div>
               )}
 
@@ -913,10 +997,16 @@ function Payment() {
           {/* Booking Summary */}
           <div className="lg:col-span-1">
             <div className="bg-gray-800 rounded-lg p-6 sticky top-6">
-              <h3 className="text-lg font-semibold text-white mb-4">
-                Booking Summary
-              </h3>
+              <div className="flex items-center gap-8 justify-start mb-4 ">
+                <h3 className="text-lg font-semibold text-white ">
+                  Booking Summary
+                </h3>
 
+                <span className="font-mono text-md flex items-center gap-1 ">
+                  <ClockIcon className="w-6 h-6 " />
+                  {formatTime(timeLeft)}
+                </span>
+              </div>
               {/* Movie Details */}
               {movie && (
                 <div className="mb-4 pb-4 border-b border-gray-700">
@@ -933,7 +1023,7 @@ function Payment() {
                       </p>
                       <p className="text-sm text-gray-400">
                         {selectedDateObj?.date} {selectedDateObj?.monthName} •{" "}
-                        {selectedTimeWithAmPm}
+                        {selectedTimeWithAmPm.replace(/\s+/g, "")}
                       </p>
                     </div>
                   </div>
@@ -961,13 +1051,41 @@ function Payment() {
                   <span>Seats ({selectedSeats?.length})</span>
                   <span>₹{seatTotal}</span>
                 </div>
-                <div className="flex justify-between text-gray-300">
-                  <span>Convenience Fee</span>
-                  <span>₹{convenienceFee}</span>
-                </div>
-                <div className="flex justify-between text-gray-300">
-                  <span>Taxes (GST 18%)</span>
-                  <span>₹{taxes}</span>
+                <div className="flex flex-col gap-2">
+                  <div className="flex justify-between text-gray-300">
+                    <span className="flex items-center gap-2">
+                      Convenience Fee
+                      <svg
+                        className={`w-4 h-4 text-white transition-transform cursor-pointer ${
+                          isOpenConvenince ? "rotate-180" : ""
+                        }`}
+                        onClick={() => setIsOpenConvenince((prev) => !prev)}
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M19 9l-7 7-7-7"
+                        />
+                      </svg>
+                    </span>
+                    <span>₹{convenienceFee}</span>
+                  </div>
+                  {isOpenConvenince && (
+                    <div className="bg-gray-900/30 bg-opac p-2 space-y-2">
+                      <div className="flex justify-between text-sm text-gray-300">
+                        <span>Base</span>
+                        <span>₹{base}</span>
+                      </div>
+                      <div className="flex justify-between text-sm text-gray-300">
+                        <span>Taxes (GST 18%)</span>
+                        <span>₹{taxes}</span>
+                      </div>
+                    </div>
+                  )}
                 </div>
                 <div className="flex justify-between text-lg font-bold text-white border-t border-gray-600 pt-2">
                   <span>Total</span>
@@ -1036,6 +1154,90 @@ function Payment() {
                   className="flex-1 px-4 py-2 bg-red-600 hover:bg-red-500 text-white rounded-lg transition-colors cursor-pointer"
                 >
                   Yes, Leave
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Timer Timeout Dialog */}
+        {showTimeoutDialog && (
+          <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 px-4">
+            <div className="bg-gray-800 rounded-xl p-6 max-w-md w-full border border-gray-600">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-10 h-10 bg-red-500/20 rounded-full flex items-center justify-center">
+                  <ClockIcon className="w-6 h-6 text-red-500" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-white">
+                    Time's Up!
+                  </h3>
+                  <p className="text-gray-400 text-sm">Session Expired</p>
+                </div>
+              </div>
+
+              <div className="mb-6">
+                <p className="text-gray-300 text-sm">
+                  Your payment session has expired due to inactivity. For
+                  security reasons, you'll need to start the booking process
+                  again.
+                </p>
+              </div>
+
+              <div className="flex flex-col gap-3">
+                <button
+                  onClick={handleTimeoutBrowseMovies}
+                  className="w-full px-4 py-3 bg-primary hover:bg-primary/90 text-white rounded-lg transition-colors cursor-pointer font-semibold"
+                >
+                  Browse Movies
+                </button>
+                <button
+                  onClick={handleTimeoutGoHome}
+                  className="w-full px-4 py-3 bg-gray-600 hover:bg-gray-500 text-white rounded-lg transition-colors cursor-pointer"
+                >
+                  Go to Home
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Page Refresh Warning Dialog */}
+        {showRefreshWarning && (
+          <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 px-4">
+            <div className="bg-gray-800 rounded-xl p-6 max-w-md w-full border border-gray-600">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-10 h-10 bg-red-500/20 rounded-full flex items-center justify-center">
+                  <XCircleIcon className="w-6 h-6 text-red-500" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-white">Warning!</h3>
+                  <p className="text-gray-400 text-sm">
+                    Transaction will be cancelled
+                  </p>
+                </div>
+              </div>
+
+              <div className="mb-6">
+                <p className="text-gray-300 text-sm">
+                  Refreshing this page will cancel your transaction and you'll
+                  lose your selected seats. Do not refresh the page during
+                  payment processing.
+                </p>
+              </div>
+
+              <div className="flex flex-col gap-3">
+                <button
+                  onClick={handleRefreshCancel}
+                  className="w-full px-4 py-3 bg-gray-600 hover:bg-gray-500 text-white rounded-lg transition-colors cursor-pointer font-semibold"
+                >
+                  Stay on Page
+                </button>
+                <button
+                  onClick={handleRefreshConfirm}
+                  className="w-full px-4 py-3 bg-red-600 hover:bg-red-500 text-white rounded-lg transition-colors cursor-pointer"
+                >
+                  Confirm Refresh
                 </button>
               </div>
             </div>

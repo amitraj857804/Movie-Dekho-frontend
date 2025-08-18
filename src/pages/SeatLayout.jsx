@@ -193,25 +193,18 @@ function SeatLayout() {
         setBookingData({
           ...currentBooking,
           selectedSeats,
-          totalAmount: selectedSeats.reduce(
-            (total, seat) => total + seat.price,
-            0
-          ),
           bookingResponse: bookingData.data,
         })
       );
 
       // Move to payment step
       dispatch(setBookingStep("payment"));
-
       // Navigate to payment (no state needed, using Redux)
       navigate("/payment");
     } catch (error) {
       console.error("Booking error:", error);
       if (error.response?.status === 409) {
-        toast.error(
-          "Some of the selected seats are no longer available. Please choose different seats."
-        );
+        toast.error(error.response.data);
         // Refresh seat layout to show updated availability
       } else {
         toast.error(
@@ -302,8 +295,6 @@ function SeatLayout() {
       <div className=" container  min-h-screen mx-auto max-w-6xl top-18 relative mb-8">
         {/* Header */}
         <div className="mb-8">
-          
-
           <div className="bg-gray-800 rounded-lg p-4 mb-6 flex">
             {/* Back Button  */}
             <button
