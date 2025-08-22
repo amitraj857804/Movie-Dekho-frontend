@@ -89,7 +89,7 @@ const sendOtpHandler = async (data) => {
         ? { email: inputValue }
         : { phoneNumber: inputValue };
 
-      const response = await api.post("api/auth/forgot-password", payload);
+      const response = await api.post("api/auth/initiate-login", payload);
 
       toast.success("OTP sent successfully!");
       setOtpSent(true);
