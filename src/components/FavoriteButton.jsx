@@ -8,6 +8,7 @@ import {
   selectFavoritesActionLoading,
 } from "../components/store/favoritesSlice.js";
 import { selectToken } from "../components/store/authSlice";
+import { useAuthModalContext } from "../hooks/useAuthModalContext";
 import toast from "react-hot-toast";
 
 const FavoriteButton = ({
@@ -22,12 +23,13 @@ const FavoriteButton = ({
   const token = useSelector(selectToken);
   const isFavorite = useSelector(selectIsMovieFavorite(movieId));
   const isLoading = useSelector(selectFavoritesActionLoading);
+  const { openAuthModal } = useAuthModalContext();
 
   const handleToggleFavorite = async (e) => {
     e.stopPropagation(); 
 
     if (!token) {
-      toast.error("Please login to add favorites");
+      openAuthModal("login");
       return;
     }
 

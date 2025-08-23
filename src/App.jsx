@@ -10,6 +10,7 @@ import {
   MyBookings,
   Favorite,
 } from "./index.js";
+import Payment from "./pages/Payment.jsx";
 import { Route, Routes, useLocation } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
 import { AuthModalProvider } from "./hooks/useAuthModalContext.jsx";
@@ -27,7 +28,8 @@ function App() {
           <Route path="/" element={<Home />} />
           <Route path="/movies" element={<Movies />} />
           <Route path="/movies/:id" element={<MoviesDetails />} />
-          <Route path="/movies/:id/:date" element={<SeatLayout />} />
+          <Route path="/movies/:id/seat-selection" element={<SeatLayout />} />
+          <Route path="/payment" element={<Payment />} />
           <Route path="/info" element={<UserPanel />} />
           <Route path="/my-bookings" element={<MyBookings />} />
           <Route path="/favorite" element={<Favorite />} />

@@ -2,10 +2,19 @@ import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { selectAllMovies, fetchAllMovies } from '../components/store/movieSlice';
 import MovieCard from '../components/MovieCard';
+import { useAuthModalContext } from '../hooks/useAuthModalContext';
+import AuthModal from '../components/auth/AuthModal';
 
 function Movies() {
   const dispatch = useDispatch();
   const movies = useSelector(selectAllMovies);
+  
+  const {
+    isAuthModalOpen,
+    authModalTab,
+    closeAuthModal,
+    switchAuthTab,
+  } = useAuthModalContext();
 
   useEffect(() => {
     if (movies.length === 0) {
@@ -14,7 +23,7 @@ function Movies() {
   }, [dispatch, movies.length]);
 
   return (
-    <div className="min-h-screen bg-gray-900 pt-20 px-6">
+    <div className="min-h-screen bg-gray-900 pt-20 px-6 pb-10">
       <div className="container mx-auto">
         <h1 className="text-3xl md:text-4xl font-bold text-white mb-8">
           All Movies
@@ -38,6 +47,14 @@ function Movies() {
           </div>
         )}
       </div>
+      
+      {/* Auth Modal */}
+      <AuthModal
+        isOpen={isAuthModalOpen}
+        onClose={closeAuthModal}
+        activeTab={authModalTab}
+        onTabChange={switchAuthTab}
+      />
     </div>
   )
 }

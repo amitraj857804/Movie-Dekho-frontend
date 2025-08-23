@@ -5,8 +5,8 @@ import AuthModal from "../../components/auth/AuthModal";
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchAllMovies, selectAllMovies } from "../../components/store/movieSlice";
-import { fetchFavoriteMovies } from "../../components/store/favoritesSlice";
 import { selectToken } from "../../components/store/authSlice";
+import { fetchFavoriteMovies } from "../../components/store/favoritesSlice";
 
 function Home() {
   const {
@@ -37,7 +37,7 @@ function Home() {
    useEffect(() => {
       const loadMovies = async () => {
         if (movies.length === 0) {
-          console.log("Fetching movies data...");
+          
           try {
             await dispatch(fetchAllMovies()).unwrap();
           } catch (error) {

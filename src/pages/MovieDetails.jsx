@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import {
@@ -9,6 +9,9 @@ import {
   ArrowLeftIcon,
   ShareIcon,
   FilmIcon,
+  ClipboardDocumentIcon,
+  CheckIcon,
+  XMarkIcon,
 } from "@heroicons/react/24/solid";
 import {
   selectAllMovies,
@@ -16,6 +19,10 @@ import {
 } from "../components/store/movieSlice";
 import Trailer from "../components/Trailer";
 import FavoriteButton from "../components/FavoriteButton";
+import BookTicket from "../components/BookTicket";
+import { useAuthModalContext } from "../hooks/useAuthModalContext";
+import AuthModal from "../components/auth/AuthModal";
+import toast from "react-hot-toast";
 
 function MovieDetails() {
   const { id } = useParams();
@@ -25,7 +32,16 @@ function MovieDetails() {
   const [isLoading, setIsLoading] = useState(true);
   const [isExpanded, setIsExpanded] = useState(false);
   const [isMobileView, setIsMobileView] = useState(false);
-  const [activeTab, setActiveTab] = useState("movieDetails"); // Track active tab
+  const [activeTab, setActiveTab] = useState("bookTicket"); // Track active tab
+  const [showShareDialog, setShowShareDialog] = useState(false);
+  const [copiedToClipboard, setCopiedToClipboard] = useState(false);
+
+  const {
+    isAuthModalOpen,
+    authModalTab,
+    closeAuthModal,
+    switchAuthTab,
+  } = useAuthModalContext();
 
   const movies = useSelector(selectAllMovies);
   const movie = movies.find((m) => m.id === parseInt(id));
@@ -34,7 +50,6 @@ function MovieDetails() {
   useEffect(() => {
     const loadMovies = async () => {
       if (movies.length === 0) {
-        
         try {
           await dispatch(fetchAllMovies()).unwrap();
         } catch (error) {
@@ -75,7 +90,6 @@ function MovieDetails() {
       window.removeEventListener("resize", checkMobileView);
     };
   }, []);
- 
 
   // Show loading state while fetching data
   if (isLoading) {
@@ -133,10 +147,6 @@ function MovieDetails() {
     });
   };
 
-  const handleBookNow = () => {
-    navigate(`/movies/${movie.id}/date-selection`);
-  };
-
   const handleWatchTrailer = (movie) => {
     setShowTrailer(true);
   };
@@ -155,6 +165,75 @@ function MovieDetails() {
     return description.slice(0, 100) + "...";
   };
 
+  // Share functionality handlers
+  const handleShareClick = () => {
+    setShowShareDialog(true);
+  };
+
+  const closeShareDialog = () => {
+    setShowShareDialog(false);
+    setCopiedToClipboard(false);
+  };
+
+  const copyToClipboard = async () => {
+    const movieUrl = window.location.href;
+    try {
+      await navigator.clipboard.writeText(movieUrl);
+      setCopiedToClipboard(true);
+      toast.success('Link copied to clipboard!');
+      setTimeout(() => setCopiedToClipboard(false), 2000);
+    } catch (err) {
+      console.error('Failed to copy: ', err);
+      // Fallback for older browsers
+      const textArea = document.createElement("textarea");
+      textArea.value = movieUrl;
+      document.body.appendChild(textArea);
+      textArea.focus();
+      textArea.select();
+      try {
+        document.execCommand('copy');
+        setCopiedToClipboard(true);
+        toast.success('Link copied to clipboard!');
+        setTimeout(() => setCopiedToClipboard(false), 2000);
+      } catch (fallbackErr) {
+        console.error('Fallback copy failed: ', fallbackErr);
+        toast.error('Failed to copy link');
+      }
+      document.body.removeChild(textArea);
+    }
+  };
+
+  const shareOnSocialMedia = (platform) => {
+    const movieUrl = encodeURIComponent(window.location.href);
+    const movieTitle = encodeURIComponent(movie?.title || 'Check out this movie');
+    const movieDescription = encodeURIComponent(movie?.description || 'Watch this amazing movie');
+    
+    let shareUrl = '';
+    
+    switch (platform) {
+      case 'facebook':
+        shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${movieUrl}`;
+        break;
+      case 'twitter':
+        shareUrl = `https://twitter.com/intent/tweet?url=${movieUrl}&text=${movieTitle}`;
+        break;
+      case 'whatsapp':
+        shareUrl = `https://wa.me/?text=${movieTitle}%20${movieUrl}`;
+        break;
+      case 'telegram':
+        shareUrl = `https://t.me/share/url?url=${movieUrl}&text=${movieTitle}`;
+        break;
+      case 'linkedin':
+        shareUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${movieUrl}`;
+        break;
+      default:
+        return;
+    }
+    
+    window.open(shareUrl, '_blank', 'width=600,height=400');
+    closeShareDialog();
+  };
+
   // Mobile View Layout
   if (isMobileView) {
     return (
@@ -164,7 +243,7 @@ function MovieDetails() {
           {/* Back Button - Above Image */}
           <div className="absolute top-4 left-4 z-20">
             <button
-              onClick={() => navigate(-1)}
+              onClick={() => navigate("/movies")}
               className="flex items-center gap-2 font-extrabold text-white p-2 rounded-lg cursor-pointer transition-all duration-300 hover:scale-110 backdrop-blur-md bg-black/30"
             >
               <ArrowLeftIcon className="w-6 h-6" />
@@ -204,7 +283,7 @@ function MovieDetails() {
               </span>
             </div>
             <div className="absolute flex bottom-2 right-3 gap-2">
-              <FavoriteButton 
+              <FavoriteButton
                 movieId={movie.id}
                 movieData={movie}
                 variant="small"
@@ -212,27 +291,30 @@ function MovieDetails() {
                 showTooltip={true}
               />
 
-              <button className="flex items-center justify-center bg-white/20 hover:bg-white/30 text-white p-2 rounded-full font-semibold transition-all duration-300 hover:scale-105 cursor-pointer backdrop-blur-sm border border-white/20">
+              <button 
+                onClick={handleShareClick}
+                className="flex items-center justify-center bg-white/20 hover:bg-white/30 text-white p-2 rounded-full font-semibold transition-all duration-300 hover:scale-105 cursor-pointer backdrop-blur-sm border border-white/20"
+              >
                 <ShareIcon className="w-5 h-5" />
               </button>
             </div>
           </div>
         </div>
         <div className="p-4 mt-19 flex gap-10 font-bold text-xl text-primary/80">
-          <span 
+          <span
             className={`cursor-pointer transition-all duration-300 relative ${
-              activeTab === "bookTicket" 
-                ? "after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-full after:h-1 after:bg-gradient-to-r after:from-white after:via-primary after:to-orange-500 after:rounded-full after:-mb-1 text-white" 
+              activeTab === "bookTicket"
+                ? "after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-full after:h-1 after:bg-gradient-to-r after:from-white after:via-primary after:to-orange-500 after:rounded-full after:-mb-1 text-white"
                 : "hover:text-white"
             }`}
             onClick={() => setActiveTab("bookTicket")}
           >
             Book Ticket
           </span>
-          <span 
+          <span
             className={`cursor-pointer transition-all duration-300 relative ${
-              activeTab === "movieDetails" 
-                ? "after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-full after:h-1 after:bg-gradient-to-r after:from-white after:via-primary after:to-orange-500 after:rounded-full after:-mb-1 text-white" 
+              activeTab === "movieDetails"
+                ? "after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-full after:h-1 after:bg-gradient-to-r after:from-white after:via-primary after:to-orange-500 after:rounded-full after:-mb-1 text-white"
                 : "hover:text-white"
             }`}
             onClick={() => setActiveTab("movieDetails")}
@@ -240,23 +322,28 @@ function MovieDetails() {
             Movie Details
           </span>
         </div>
+
+        {activeTab === "bookTicket" && (
+          <BookTicket/>
+        )}
         {/* Mobile Movie Information Section */}
         <div className=" px-4 py-2 ">
           {/* Conditional Content Based on Active Tab */}
           {activeTab === "movieDetails" && (
             <>
-             <h1 className="text-xl font-bold text-white  drop-shadow-lg mb-1">
-              {movie.title.toUpperCase()}
-            </h1>
-            <span className="text-white mr-3 ">{movie.duration || "N/A"}</span>
-            <span className="text-white font-semibold text-sm px-3 py-1 rounded-lg bg-gray-800/80 backdrop-blur-sm">
+              <h1 className="text-xl font-bold text-white  drop-shadow-lg mb-1">
+                {movie.title.toUpperCase()}
+              </h1>
+              <span className="text-white mr-3 ">
+                {movie.duration || "N/A"}
+              </span>
+              <span className="text-white font-semibold text-sm px-3 py-1 rounded-lg bg-gray-800/80 backdrop-blur-sm">
                 {movie.certification || "Not Rated"}
               </span>
               {/* Description */}
               <div className="my-6">
                 <p className="text-gray-300 text-sm leading-relaxed">
-                
-                  {movie.description }
+                  {movie.description}
                 </p>
               </div>
 
@@ -274,51 +361,32 @@ function MovieDetails() {
                   <div className="flex items-center gap-3">
                     <FilmIcon className="w-5 h-5 text-primary flex-shrink-0" />
                     <span className="text-gray-400">Genre:</span>
-                    <span className="text-white">{movie.genre.split(",")[0]}</span>
+                    <span className="text-white">
+                      {movie.genre.split(",")[0]}
+                    </span>
                   </div>
 
                   <div className="flex items-center gap-3">
                     <ClockIcon className="w-5 h-5 text-primary flex-shrink-0" />
                     <span className="text-gray-400">Duration:</span>
-                    <span className="text-white">{movie.duration || "N/A"}</span>
+                    <span className="text-white">
+                      {movie.duration || "N/A"}
+                    </span>
                   </div>
 
                   <div className="flex items-center gap-3">
                     <LanguageIcon className="w-5 h-5 text-primary flex-shrink-0" />
                     <span className="text-gray-400">Language:</span>
-                    <span className="text-white">{movie.language || "N/A"}</span>
+                    <span className="text-white">
+                      {movie.language || "N/A"}
+                    </span>
                   </div>
                 </div>
               </div>
             </>
           )}
 
-          {activeTab === "bookTicket" && (
-            <div className="space-y-6">
-              <h3 className="text-xl font-semibold text-white">Book Your Tickets</h3>
-              
-              {/* Ticket Booking Content */}
-              <div className="space-y-4">
-                <div className="bg-gray-800 p-4 rounded-lg">
-                  <h4 className="text-white font-semibold mb-2">Select Show Time</h4>
-                  <p className="text-gray-400 text-sm">Choose your preferred showtime and book tickets.</p>
-                </div>
-                
-                <button
-                  onClick={handleBookNow}
-                  className="w-full bg-primary hover:bg-primary/90 text-white py-3 rounded-full font-semibold text-lg transition-all duration-300 hover:scale-105"
-                >
-                  Proceed to Book Tickets
-                </button>
-                
-                <div className="text-center">
-                  <p className="text-gray-400 text-sm">
-                    Select your seats and complete your booking
-                  </p>
-                </div>
-              </div>
-            </div>
-          )}
+         
         </div>
 
         {/* Trailer Modal */}
@@ -334,12 +402,12 @@ function MovieDetails() {
   // Desktop View Layout
   return (
     <div className="min-h-screen bg-gray-900 ">
-      <div className="bg-gradient-to-b  from-gray-800 via-gray-700 to-red-800/30 w-[100%] px-6 pt-30 pb-10">
+      <div className="bg-gradient-to-b  from-gray-800 via-red-900/30 to-red-800/30 w-[100%] px-6 pt-30 pb-10">
         <div className="container mx-auto px-12 ">
           {/* Back Button */}
           <div className="mb-6">
             <button
-              onClick={() => navigate(-1)}
+              onClick={() => navigate("/movies")}
               className="flex items-center gap-2 font-extrabold text-white p-3 rounded-full cursor-pointer transition-all duration-300 hover:scale-110 backdrop-blur-sm "
             >
               <ArrowLeftIcon className="w-6 h-6" />
@@ -443,7 +511,7 @@ function MovieDetails() {
                       {movie.certification || "Not Rated"}
                     </span>
                     <div className="flex gap-4 lg:mt-6 md:mt-12 ">
-                      <FavoriteButton 
+                      <FavoriteButton
                         movieId={movie.id}
                         movieData={movie}
                         variant="default"
@@ -451,7 +519,10 @@ function MovieDetails() {
                         showTooltip={true}
                       />
 
-                      <button className="flex items-center justify-center gap-3 bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-full font-semibold transition-all duration-300 hover:scale-105 cursor-pointer backdrop-blur-sm border border-white/20">
+                      <button 
+                        onClick={handleShareClick}
+                        className="flex items-center justify-center gap-3 bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-full font-semibold transition-all duration-300 hover:scale-105 cursor-pointer backdrop-blur-sm border border-white/20"
+                      >
                         <ShareIcon className="w-4 h-4" />
                       </button>
                     </div>
@@ -463,12 +534,136 @@ function MovieDetails() {
         </div>
       </div>
 
+      {/* Book tickets - selcet Date,time and theatre */}
+      <BookTicket  />
+
       {/* Trailer Modal */}
       <Trailer
         isOpen={showTrailer}
         onClose={() => setShowTrailer(false)}
         movie={movie}
       />
+      
+      {/* Auth Modal */}
+      <AuthModal
+        isOpen={isAuthModalOpen}
+        onClose={closeAuthModal}
+        activeTab={authModalTab}
+        onTabChange={switchAuthTab}
+      />
+
+      {/* Share Dialog */}
+      {showShareDialog && (
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 px-4">
+          <div className="bg-gray-800 rounded-xl p-6 max-w-md w-full border border-gray-600">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-white">
+                Share Movie
+              </h3>
+              <button
+                onClick={closeShareDialog}
+                className="text-gray-400 hover:text-white transition-colors"
+              >
+                <XMarkIcon className="w-6 h-6" />
+              </button>
+            </div>
+
+            <div className="mb-4">
+              <p className="text-gray-300 text-sm mb-3">
+                Share "{movie?.title}" with your friends
+              </p>
+              
+              {/* Copy Link Section */}
+              <div className="bg-gray-700 rounded-lg p-3 mb-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex-1 mr-3">
+                    <p className="text-gray-400 text-xs mb-1">Movie Link</p>
+                    <p className="text-white text-sm truncate">
+                      {window.location.href}
+                    </p>
+                  </div>
+                  <button
+                    onClick={copyToClipboard}
+                    className={`flex items-center gap-2 px-3 py-2 rounded-md transition-all duration-300 ${
+                      copiedToClipboard
+                        ? 'bg-green-600 text-white'
+                        : 'bg-primary hover:bg-primary/90 text-white'
+                    }`}
+                  >
+                    {copiedToClipboard ? (
+                      <>
+                        <CheckIcon className="w-4 h-4" />
+                        <span className="text-sm">Copied!</span>
+                      </>
+                    ) : (
+                      <>
+                        <ClipboardDocumentIcon className="w-4 h-4" />
+                        <span className="text-sm">Copy</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Social Media Sharing */}
+            <div>
+              <p className="text-gray-400 text-sm mb-3">Share on social media</p>
+              <div className="grid grid-cols-2 gap-3">
+                <button
+                  onClick={() => shareOnSocialMedia('facebook')}
+                  className="flex items-center gap-3 p-3 bg-[#1877F2] hover:bg-[#1877F2]/90 text-white rounded-lg transition-colors"
+                >
+                  <div className="w-5 h-5 bg-white rounded-sm flex items-center justify-center">
+                    <span className="text-[#1877F2] font-bold text-sm">f</span>
+                  </div>
+                  <span className="font-medium">Facebook</span>
+                </button>
+
+                <button
+                  onClick={() => shareOnSocialMedia('twitter')}
+                  className="flex items-center gap-3 p-3 bg-[#1DA1F2] hover:bg-[#1DA1F2]/90 text-white rounded-lg transition-colors"
+                >
+                  <div className="w-5 h-5 bg-white rounded-sm flex items-center justify-center">
+                    <span className="text-[#1DA1F2] font-bold text-sm">𝕏</span>
+                  </div>
+                  <span className="font-medium">Twitter</span>
+                </button>
+
+                <button
+                  onClick={() => shareOnSocialMedia('whatsapp')}
+                  className="flex items-center gap-3 p-3 bg-[#25D366] hover:bg-[#25D366]/90 text-white rounded-lg transition-colors"
+                >
+                  <div className="w-5 h-5 bg-white rounded-sm flex items-center justify-center">
+                    <span className="text-[#25D366] font-bold text-xs">W</span>
+                  </div>
+                  <span className="font-medium">WhatsApp</span>
+                </button>
+
+                <button
+                  onClick={() => shareOnSocialMedia('telegram')}
+                  className="flex items-center gap-3 p-3 bg-[#0088CC] hover:bg-[#0088CC]/90 text-white rounded-lg transition-colors"
+                >
+                  <div className="w-5 h-5 bg-white rounded-sm flex items-center justify-center">
+                    <span className="text-[#0088CC] font-bold text-sm">T</span>
+                  </div>
+                  <span className="font-medium">Telegram</span>
+                </button>
+
+                <button
+                  onClick={() => shareOnSocialMedia('linkedin')}
+                  className="flex items-center gap-3 p-3 bg-[#0A66C2] hover:bg-[#0A66C2]/90 text-white rounded-lg transition-colors col-span-2"
+                >
+                  <div className="w-5 h-5 bg-white rounded-sm flex items-center justify-center">
+                    <span className="text-[#0A66C2] font-bold text-sm">in</span>
+                  </div>
+                  <span className="font-medium">LinkedIn</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
