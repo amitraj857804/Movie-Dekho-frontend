@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useSelector } from 'react-redux';
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { useSelector } from "react-redux";
 import {
   CalendarIcon,
   ClockIcon,
@@ -8,16 +8,16 @@ import {
   TicketIcon,
   ArrowLeftIcon,
   ExclamationCircleIcon,
-} from '@heroicons/react/24/outline';
-import { selectToken } from '../components/store/authSlice';
-import api from '../api/api';
-import DownloadTicketButton from '../components/DownloadTicketButton';
-import toast from 'react-hot-toast';
+} from "@heroicons/react/24/outline";
+import { selectToken } from "../components/store/authSlice";
+import api from "../api/api";
+import DownloadTicketButton from "../components/DownloadTicketButton";
+import toast from "react-hot-toast";
 
 function MyBookings() {
   const navigate = useNavigate();
   const token = useSelector(selectToken);
-  
+
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -27,34 +27,34 @@ function MyBookings() {
     const fetchBookings = async () => {
       if (!token) {
         setLoading(false);
-        setError('Please login to view your bookings');
+        setError("Please login to view your bookings");
         return;
       }
 
       try {
         setLoading(true);
-        const response = await api.get('/api/bookings/my-bookings', {
+        const response = await api.get("/api/bookings/my-bookings", {
           headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          }
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
         });
-        
-        console.log('Bookings response:', response.data);
+
+        console.log("Bookings response:", response.data);
         setBookings(response.data || []);
         setError(null);
       } catch (error) {
-        console.error('Error fetching bookings:', error);
-        
+        console.error("Error fetching bookings:", error);
+
         if (error.response?.status === 401) {
-          setError('Session expired. Please login again.');
-          toast.error('Session expired. Please login again.');
+          setError("Session expired. Please login again.");
+          toast.error("Session expired. Please login again.");
         } else if (error.response?.status === 404) {
           setBookings([]);
           setError(null);
         } else {
-          setError('Failed to load bookings. Please try again.');
-          toast.error('Failed to load bookings');
+          setError("Failed to load bookings. Please try again.");
+          toast.error("Failed to load bookings");
         }
       } finally {
         setLoading(false);
@@ -64,38 +64,36 @@ function MyBookings() {
     fetchBookings();
   }, [token]);
 
-  // Format date function
-  const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
-      weekday: 'short',
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    });
-  };
-
-  // Format time function
-  const formatTime = (timeString) => {
-    const time = new Date(`2000-01-01T${timeString}`);
-    return time.toLocaleTimeString('en-US', {
-      hour: 'numeric',
-      minute: '2-digit',
-      hour12: true
-    });
+  // Format DateTime function to handle your backend response
+  const formatDateTime = (dateTimeString) => {
+    if (!dateTimeString) return { date: "N/A", time: "N/A" };
+    const date = new Date(dateTimeString);
+    return {
+      date: date.toLocaleDateString("en-US", {
+        weekday: "short",
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+      }),
+      time: date.toLocaleTimeString("en-US", {
+        hour: "numeric",
+        minute: "2-digit",
+        hour12: true,
+      }),
+    };
   };
 
   // Get booking status color
   const getStatusColor = (status) => {
     switch (status?.toLowerCase()) {
-      case 'confirmed':
-        return 'text-green-400 bg-green-400/20';
-      case 'cancelled':
-        return 'text-red-400 bg-red-400/20';
-      case 'pending':
-        return 'text-yellow-400 bg-yellow-400/20';
+      case "confirmed":
+        return "text-green-400 bg-green-400/20";
+      case "cancelled":
+        return "text-red-400 bg-red-400/20";
+      case "pending":
+        return "text-yellow-400 bg-yellow-400/20";
       default:
-        return 'text-blue-400 bg-blue-400/20';
+        return "text-blue-400 bg-blue-400/20";
     }
   };
 
@@ -105,25 +103,20 @@ function MyBookings() {
       <div className="min-h-screen bg-gray-900 pt-20 px-6">
         <div className="container mx-auto max-w-6xl">
           <div className="mb-8 flex gap-12 justify-start items-center ">
-            <div className='w-2'>
-
-            
-            <button
-              onClick={() => navigate('/')}
-              className="gap-2 text-white hover:text-primary transition-colors mb-4"
-            >
-              <ArrowLeftIcon className="w-5 h-5" />
-             
-            </button>
+            <div className="w-2">
+              <button
+                onClick={() => navigate("/")}
+                className="gap-2 text-white hover:text-primary transition-colors mb-4"
+              >
+                <ArrowLeftIcon className="w-5 h-5" />
+              </button>
             </div>
-           
 
             <h1 className="text-3xl md:text-4xl font-bold text-white flex items-center justify-center ">
               My Bookings
             </h1>
-           
           </div>
-          
+
           <div className="flex justify-center items-center py-20">
             <div className="flex flex-col items-center gap-4">
               <div className="w-12 h-12 border-4 border-primary/30 border-b-primary rounded-full animate-spin"></div>
@@ -141,7 +134,7 @@ function MyBookings() {
         {/* Header */}
         <div className="mb-8">
           <button
-            onClick={() => navigate('/')}
+            onClick={() => navigate("/")}
             className="flex items-center gap-2 text-white hover:text-primary transition-colors mb-4"
           >
             <ArrowLeftIcon className="w-5 h-5" />
@@ -151,10 +144,11 @@ function MyBookings() {
             My Bookings
           </h1>
           <p className="text-gray-400">
-            {bookings.length > 0 
-              ? `You have ${bookings.length} booking${bookings.length > 1 ? 's' : ''}`
-              : 'Your movie bookings will appear here'
-            }
+            {bookings.length > 0
+              ? `You have ${bookings.length} booking${
+                  bookings.length > 1 ? "s" : ""
+                }`
+              : "Your movie bookings will appear here"}
           </p>
         </div>
 
@@ -173,10 +167,14 @@ function MyBookings() {
           <div className="text-center py-20">
             <div className="mb-6">
               <TicketIcon className="w-20 h-20 text-gray-600 mx-auto mb-4" />
-              <h2 className="text-2xl font-semibold text-gray-400 mb-2">No bookings yet</h2>
-              <p className="text-gray-500 mb-6">Start exploring movies and book your first show!</p>
+              <h2 className="text-2xl font-semibold text-gray-400 mb-2">
+                No bookings yet
+              </h2>
+              <p className="text-gray-500 mb-6">
+                Start exploring movies and book your first show!
+              </p>
               <button
-                onClick={() => navigate('/movies')}
+                onClick={() => navigate("/movies")}
                 className="bg-primary hover:bg-primary/90 text-white px-6 py-3 rounded-lg font-semibold transition-colors"
               >
                 Browse Movies
@@ -197,11 +195,17 @@ function MyBookings() {
                   {/* Movie Poster */}
                   <div className="flex-shrink-0">
                     <img
-                      src={booking.movie?.thumbnail || booking.movieThumbnail || '/placeholder-movie.jpg'}
-                      alt={booking.movie?.title || booking.movieTitle || 'Movie'}
+                      src={
+                        booking.movie?.thumbnail ||
+                        booking.movieThumbnail ||
+                        "/placeholder-movie.jpg"
+                      }
+                      alt={
+                        booking.movie?.title || booking.movieTitle || "Movie"
+                      }
                       className="w-20 h-28 rounded-lg object-cover"
                       onError={(e) => {
-                        e.target.src = '/placeholder-movie.jpg';
+                        e.target.src = "/placeholder-movie.jpg";
                       }}
                     />
                   </div>
@@ -211,20 +215,26 @@ function MyBookings() {
                     <div className="flex justify-between items-start mb-3">
                       <div>
                         <h3 className="text-xl font-semibold text-white mb-1">
-                          {booking.movie?.title || booking.movieTitle || 'Movie Title'}
+                          {booking.movie?.title ||
+                            booking.movieTitle ||
+                            "Movie Title"}
                         </h3>
                         <div className="flex items-center gap-2">
-                          <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(booking.status)}`}>
-                            {booking.status || 'Confirmed'}
+                          <span
+                            className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(
+                              booking.status
+                            )}`}
+                          >
+                            {booking.status || "Confirmed"}
                           </span>
                         </div>
                       </div>
                       <div className="text-right">
                         <p className="text-primary font-bold text-lg">
-                          ₹{booking.totalAmount || booking.amount || '0'}
+                          ₹{booking.totalAmount || booking.amount || "0"}
                         </p>
                         <p className="text-gray-400 text-sm">
-                          Booking ID: {booking.id || booking.bookingId || 'N/A'}
+                          Booking ID: {booking.id || booking.bookingId || "N/A"}
                         </p>
                       </div>
                     </div>
@@ -235,13 +245,15 @@ function MyBookings() {
                         <div className="flex items-center gap-2 text-gray-300">
                           <MapPinIcon className="w-4 h-4 text-primary" />
                           <span className="text-sm">
-                            {booking.cinema?.name || booking.theaterName || 'Theater Name'}
+                            {booking.cinema?.name ||
+                              booking.theaterName ||
+                              "Theater Name"}
                           </span>
                         </div>
                         <div className="flex items-center gap-2 text-gray-300">
                           <CalendarIcon className="w-4 h-4 text-primary" />
                           <span className="text-sm">
-                            {booking.showDate ? formatDate(booking.showDate) : 'Date N/A'}
+                            {formatDateTime(booking.showDateTime).date}
                           </span>
                         </div>
                       </div>
@@ -249,16 +261,16 @@ function MyBookings() {
                         <div className="flex items-center gap-2 text-gray-300">
                           <ClockIcon className="w-4 h-4 text-primary" />
                           <span className="text-sm">
-                            {booking.showTime ? formatTime(booking.showTime) : 'Time N/A'}
+                            {formatDateTime(booking.showDateTime).time}
                           </span>
                         </div>
                         <div className="flex items-center gap-2 text-gray-300">
                           <TicketIcon className="w-4 h-4 text-primary" />
                           <span className="text-sm">
-                            Seats: {Array.isArray(booking.seats) 
-                              ? booking.seats.join(', ') 
-                              : booking.seatNumbers?.join(', ') || 'N/A'
-                            }
+                            Seats:{" "}
+                            {Array.isArray(booking.seats)
+                              ? booking.seats.join(", ")
+                              : booking.seatNumbers?.join(", ") || "N/A"}
                           </span>
                         </div>
                       </div>
@@ -267,22 +279,33 @@ function MyBookings() {
                     {/* Booking Date and Actions */}
                     <div className="border-t border-gray-700 pt-3 flex justify-between items-center">
                       <p className="text-gray-500 text-sm">
-                        Booked on: {booking.bookingDate 
-                          ? formatDate(booking.bookingDate) 
-                          : booking.createdAt 
-                            ? formatDate(booking.createdAt)
-                            : 'N/A'
-                        }
+                        Booked on: {formatDateTime(booking.bookingTime).date}
                       </p>
-                      
+
                       {/* Download Ticket Button */}
                       <DownloadTicketButton
                         bookingId={booking.id || booking.bookingId}
                         status={booking.status}
                         size="md"
-                        onDownloadStart={() => console.log('Download started for booking:', booking.id || booking.bookingId)}
-                        onDownloadComplete={() => console.log('Download completed for booking:', booking.id || booking.bookingId)}
-                        onDownloadError={(error) => console.error('Download error for booking:', booking.id || booking.bookingId, error)}
+                        onDownloadStart={() =>
+                          console.log(
+                            "Download started for booking:",
+                            booking.id || booking.bookingId
+                          )
+                        }
+                        onDownloadComplete={() =>
+                          console.log(
+                            "Download completed for booking:",
+                            booking.id || booking.bookingId
+                          )
+                        }
+                        onDownloadError={(error) =>
+                          console.error(
+                            "Download error for booking:",
+                            booking.id || booking.bookingId,
+                            error
+                          )
+                        }
                       />
                     </div>
                   </div>
