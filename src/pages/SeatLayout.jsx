@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { ArrowLeftIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import { FaChair } from "react-icons/fa";
@@ -33,49 +33,61 @@ function SeatLayout() {
     currentBooking || {};
 
   // State management
+  const cleanupRef = useRef(false);
   const [seats, setSeats] = useState([]);
   const [selectedSeats, setSelectedSeats] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [ticketCount, setTicketCount] = useState(10);
   const [isBookingConfirming, setIsBookingConfirming] = useState(false);
-  const [refreshTrigger, setRefreshTrigger] = useState(0);
 
-  // Redirect if no booking data is available
+  // Main initialization effect
   useEffect(() => {
-    if (!currentBooking || !movie || !selectedCinema) {
-      toast.error("No booking details found. Please start over.");
-      navigate(`/movies/${id}`);
-      return;
-    }
-  }, [currentBooking, movie, selectedCinema, navigate, id]);
+    // Early return if cleaning up
+    if (cleanupRef.current) return;
 
-  // Clear selected seats when returning to seat selection (recommended)
-  useEffect(() => {
-    // Clear only seat selections when user enters seat selection
-    // This preserves movie/show data for better UX
-    dispatch(clearSelectedSeats());
-    setSelectedSeats([]);
+    const initializeComponent = async () => {
+      // Redirect check
+      if (!currentBooking || !movie || !selectedCinema) {
+        toast.error("No booking details found. Please start over.");
+        navigate(`/movies/${id}`);
+        return;
+      }
 
-    // Clear payment timer so it restarts fresh when user goes to payment
-    localStorage.removeItem("paymentTimer");
-    localStorage.removeItem("paymentStartTime");
-    localStorage.removeItem("payment_timer_start");
+      // Clear previous selections and localStorage
+      dispatch(clearSelectedSeats());
+      setSelectedSeats([]);
+      localStorage.removeItem("paymentTimer");
+      localStorage.removeItem("paymentStartTime");
+      localStorage.removeItem("payment_timer_start");
+      localStorage.removeItem("payment_session_active");
 
-    // Clear payment session flag to prevent false refresh detection
-    localStorage.removeItem("payment_session_active");
+      // Fetch seats
+      try {
+        setLoading(true);
+        const slotId = selectedCinema?.slotId || selectedCinema?.id || 12;
+        const response = await api.get(`api/seats/slot/${slotId}`);
+        setSeats(response.data.seats);
+        
+        
+      } catch (err) {
+        console.error("Error fetching seats:", err);
+        setError(err.response?.data?.message || err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-    // Force refresh seats when component mounts (handles payment cancellation)
-    setRefreshTrigger((prev) => prev + 1);
-  }, [dispatch]);
+    initializeComponent();
 
-  // Sync local selectedSeats with Redux store
-  useEffect(() => {
-    if (currentBooking?.selectedSeats) {
-      setSelectedSeats(currentBooking.selectedSeats);
-    }
-  }, [currentBooking?.selectedSeats]);
+    // Cleanup function
+    return () => {
+      cleanupRef.current = true;
+    };
+  }, [currentBooking, movie, selectedCinema, navigate, id, dispatch, token]);
 
+
+  // Scroll to top when loading completes
   useEffect(() => {
     if (!loading) {
       window.scrollTo({
@@ -86,61 +98,37 @@ function SeatLayout() {
     }
   }, [loading]);
 
-  // Fetch seat layout from API
-  useEffect(() => {
-    const fetchSeats = async () => {
-      try {
-        setLoading(true);
-        // Use the slot ID from selectedCinema or fallback to a default
-        const slotId = selectedCinema?.slotId || selectedCinema?.id || 12;
-        const response = await api.get(`api/seats/slot/${slotId}`);
-
-        setSeats(response.data);
-      } catch (err) {
-        console.error("Error fetching seats:", err);
-        setError(err.response?.data?.message || err.message);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    if (selectedCinema?.slotId || selectedCinema?.id) {
-      fetchSeats();
-    } else {
-      setLoading(false);
-      setError("No slot ID available");
-    }
-  }, [selectedCinema, token, refreshTrigger]);
-
   // Handle seat selection
   const handleSeatClick = (seat) => {
     if (seat.booked || seat.status === "BOOKED") {
       return; // Don't allow selecting booked seats
     }
 
-    const seatId = seat.id || seat.seatId;
-    const isSelected = selectedSeats.find((s) => (s.id || s.seatId) === seatId);
+    const seatNumber = seat.seatNumber || seat.no;
+    
+    const isSelected = selectedSeats.find((s) => s.seatNumber === seatNumber);
 
     let newSelectedSeats;
     if (isSelected) {
       // Remove seat from selection
       newSelectedSeats = selectedSeats.filter(
-        (s) => (s.id || s.seatId) !== seatId
+        (s) => s.seatNumber !== seatNumber
       );
     } else {
       // Add seat to selection (limit based on ticket count)
       if (selectedSeats.length < ticketCount) {
         newSelectedSeats = [...selectedSeats, seat];
+        
       } else {
         toast.error(`You can only select up to ${ticketCount} seats`);
         return;
       }
     }
 
-    // Update local state
+    // Update local state immediately
     setSelectedSeats(newSelectedSeats);
 
-    // Update Redux store
+    // Update Redux store (this should not trigger auto-selection due to removed sync effect)
     dispatch(updateSelectedSeats(newSelectedSeats));
   };
 
@@ -152,9 +140,9 @@ function SeatLayout() {
 
   // Get seat status for styling
   const getSeatClass = (seat) => {
-    const seatId = seat.id || seat.seatId;
-    const isSelected = selectedSeats.find((s) => (s.id || s.seatId) === seatId);
-    const isBooked = seat.booked || seat.status === "BOOKED";
+    const seatNumber = seat.seatNumber || seat.no;
+    const isSelected = selectedSeats.find((s) => (s.seatNumber || s.no) === seatNumber);
+    const isBooked = seat.lockedBySession || seat.status === "BOOKED" ;
 
     if (isBooked) {
       return "bg-red-500 cursor-not-allowed opacity-50 ";
@@ -169,6 +157,7 @@ function SeatLayout() {
   const handleBookingConfirm = async () => {
     if (!token) {
       toast.error("Please login to continue booking");
+
       return;
     }
 
@@ -202,7 +191,7 @@ function SeatLayout() {
       // Navigate to payment (no state needed, using Redux)
       navigate("/payment");
     } catch (error) {
-      console.error("Booking error:", error);
+      
       if (error.response?.status === 409) {
         toast.error(error.response.data);
         // Refresh seat layout to show updated availability
@@ -478,7 +467,7 @@ function SeatLayout() {
                             {/* Actual seat buttons */}
                             {groupedSeats[row].map((seat, index) => (
                               <button
-                                key={seat.id || seat.seatId || index}
+                                key={seat.seatNumber || index}
                                 onClick={() => handleSeatClick(seat)}
                                 className={`w-8 h-8 rounded text-xs flex justify-center items-center font-medium text-white transition-all duration-200 hover:scale-105 flex-shrink-0 ${getSeatClass(
                                   seat

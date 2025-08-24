@@ -19,6 +19,7 @@ import {
 } from "../components/store/bookingSlice";
 import toast from "react-hot-toast";
 import api from "../api/api";
+import ShareDialog from "../components/shareDialog";
 
 function Payment() {
   const navigate = useNavigate();
@@ -59,6 +60,7 @@ function Payment() {
   const [successBookingData, setSuccessBookingData] = useState(null); // Preserve booking data for success screen
   const [showTimeoutDialog, setShowTimeoutDialog] = useState(false); // Timer expiration dialog
   const [showRefreshWarning, setShowRefreshWarning] = useState(false); // Page refresh warning dialog
+  const [showShareDialog, setShowShareDialog] = useState(false); // Share dialog state
 
   // Timer for payment timeout - persistent across page refreshes
   const [timeLeft, setTimeLeft] = useState(600); // 10 minutes
@@ -343,6 +345,16 @@ function Payment() {
     // Format expiry date
     if (name === "expiryDate") {
       const formatted = value.replace(/\D/g, "").replace(/(.{2})/, "$1/");
+      
+      // Additional validation for month
+      if (formatted.length >= 2) {
+        const month = parseInt(formatted.substring(0, 2), 10);
+        if (month > 12) {
+          // Don't update if month is greater than 12
+          return;
+        }
+      }
+      
       if (formatted.length <= 5) {
         setFormData({ ...formData, [name]: formatted });
       }
@@ -368,6 +380,25 @@ function Payment() {
       }
       if (!expiryDate || expiryDate.length !== 5) {
         setPaymentError("Please enter a valid expiry date (MM/YY)");
+        return false;
+      }
+      
+      // Validate month is not greater than 12
+      const month = parseInt(expiryDate.substring(0, 2), 10);
+      const year = parseInt(expiryDate.substring(3, 5), 10);
+      
+      if (month < 1 || month > 12) {
+        setPaymentError("Please enter a valid month (01-12)");
+        return false;
+      }
+      
+      // Check if the expiry date is not in the past
+      const currentDate = new Date();
+      const currentYear = currentDate.getFullYear() % 100; // Get last 2 digits
+      const currentMonth = currentDate.getMonth() + 1; // getMonth() returns 0-11
+      
+      if (year < currentYear || (year === currentYear && month < currentMonth)) {
+        setPaymentError("Card has expired. Please enter a valid expiry date");
         return false;
       }
       if (!cvv || cvv.length < 3) {
@@ -487,8 +518,8 @@ function Payment() {
   };
 
   // Calculate breakdown using Redux data
-  const seatTotal = bookingResponse.ticketFee;
-  const convenienceFee = bookingResponse.convenienceFee;
+  const seatTotal = bookingResponse?.ticketFee;
+  const convenienceFee = bookingResponse?.convenienceFee;
   const base = ((seatTotal * 7) / 100).toFixed(2);
   const taxes = base * 0.18;
   const finalTotal = seatTotal + convenienceFee;
@@ -676,6 +707,12 @@ function Payment() {
 
               <div className="flex flex-col gap-3">
                 <button
+                  onClick={() => setShowShareDialog(true)}
+                  className="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg font-semibold transition-colors cursor-pointer"
+                >
+                  Share Your Booking
+                </button>
+                <button
                   onClick={() => navigate("/my-bookings")}
                   className="w-full bg-primary hover:bg-primary/90 text-white py-3 rounded-lg font-semibold transition-colors cursor-pointer"
                 >
@@ -690,6 +727,13 @@ function Payment() {
               </div>
             </div>
           </div>
+
+          {/* Share Dialog */}
+          <ShareDialog 
+            isOpen={showShareDialog}
+            onClose={() => setShowShareDialog(false)}
+            bookingData={displayData}
+          />
         </div>
       </div>
     );
