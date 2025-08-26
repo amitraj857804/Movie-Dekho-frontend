@@ -95,14 +95,21 @@ function Navbar() {
   return (
     <div
       className={`fixed top-0 left-0 z-[9979] w-full flex items-center justify-between
-       px-6 md:px-16 lg:px-36 py-5 sm:py-3 transition-all duration-300 ${
+       px-6 md:px-16 lg:px-32 py-5 sm:py-3 transition-all duration-300 ${
          isScrolled
-           ? "backdrop-blur-sm bg-black/70 border-b border-gray-700 shadow-lg"
+           ? "backdrop-blur-sm bg-black/70 border-b border-gray-200/20 shadow-lg"
            : "bg-transparent border-b border-transparent"
        }`}
     >
+       <MenuIcon
+          className="lg:hidden w-8 h-8 cursor-pointer "
+          onClick={() => {
+            setIsOpen(!isOpen);
+          }}
+        />
       <Link to="/" className="max-lg:flex-1 ml-4 cursor-pointer">
         <div className="flex items-center">
+         
           <div className="relative">
             <span className="text-3xl font-extrabold text-white tracking-wide drop-shadow-lg hover:scale-105 transition-transform duration-300 cursor-pointer">
               Cine<span className="text-red-500 drop-shadow-md">B</span>ook
@@ -173,7 +180,7 @@ function Navbar() {
 
       <div className="flex items-center gap-8">
         <SearchIcon 
-          className="max-lg:hidden w-6 h-6 cursor-pointer hover:text-red-500 transition-colors" 
+          className=" sm:-mr-0 -mr-3 w-6 h-6 cursor-pointer hover:text-red-500 transition-colors" 
           onClick={handleSearchClick}
         />
 
@@ -297,18 +304,7 @@ function Navbar() {
           </button>
         )}
       </div>
-      <div className="flex items-center gap-4">
-        <SearchIcon 
-          className="lg:hidden w-6 h-6 cursor-pointer hover:text-red-500 transition-colors" 
-          onClick={handleSearchClick}
-        />
-        <MenuIcon
-          className="lg:hidden w-8 h-8 cursor-pointer"
-          onClick={() => {
-            setIsOpen(!isOpen);
-          }}
-        />
-      </div>
+     
 
       {/* Movie Search Component */}
       <MovieSearch isOpen={showSearch} onClose={handleCloseSearch} />
