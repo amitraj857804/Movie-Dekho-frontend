@@ -344,25 +344,50 @@ function Payment() {
 
     // Format expiry date
     if (name === "expiryDate") {
-      const formatted = value.replace(/\D/g, "").replace(/(.{2})/, "$1/");
+      // Allow only numbers and forward slash
+      let cleanValue = value.replace(/[^0-9/]/g, "");
       
-      // Additional validation for month
-      if (formatted.length >= 2) {
-        const month = parseInt(formatted.substring(0, 2), 10);
-        if (month > 12) {
-          // Don't update if month is greater than 12
-          return;
+      // Remove any existing slashes to start fresh
+      let numbersOnly = cleanValue.replace(/\//g, "");
+      
+      // Limit to 4 digits
+      numbersOnly = numbersOnly.substring(0, 4);
+      
+      // Validate month if we have at least 2 digits
+      if (numbersOnly.length >= 2) {
+        const month = numbersOnly.substring(0, 2);
+        const monthNum = parseInt(month);
+        
+        // If month is greater than 12, limit to valid month
+        if (monthNum > 12) {
+          // If first digit is 2-9, only allow 1 (for months 01-12)
+          if (month.charAt(0) > '1') {
+            numbersOnly = '1' + numbersOnly.substring(1);
+          } else if (monthNum > 12) {
+            // If month is 13-19, convert to 12
+            numbersOnly = '12' + numbersOnly.substring(2);
+          }
+        }
+        
+        // If month starts with 0, make sure second digit isn't 0 (prevent 00)
+        if (month === '00') {
+          numbersOnly = '01' + numbersOnly.substring(2);
         }
       }
       
-      if (formatted.length <= 5) {
-        setFormData({ ...formData, [name]: formatted });
+      // Add slash after 2 digits if we have more than 2
+      if (numbersOnly.length > 2) {
+        cleanValue = numbersOnly.substring(0, 2) + "/" + numbersOnly.substring(2);
+      } else {
+        cleanValue = numbersOnly;
       }
+      
+      setFormData({ ...formData, [name]: cleanValue });
       return;
     }
 
     // Limit CVV to 3-4 digits
-    if (name === "cvv" && value.length <= 4) {
+    if (name === "cvv" && value.length <= 3) {
       setFormData({ ...formData, [name]: value.replace(/\D/g, "") });
       return;
     }
@@ -383,10 +408,8 @@ function Payment() {
         return false;
       }
       
-      // Validate month is not greater than 12
-      const month = parseInt(expiryDate.substring(0, 2), 10);
-      const year = parseInt(expiryDate.substring(3, 5), 10);
-      
+      // Validate month (should be 01-12)
+      const month = parseInt(expiryDate.substring(0, 2));
       if (month < 1 || month > 12) {
         setPaymentError("Please enter a valid month (01-12)");
         return false;
