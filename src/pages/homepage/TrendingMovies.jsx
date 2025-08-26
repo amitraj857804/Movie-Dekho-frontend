@@ -8,7 +8,30 @@ import MovieCard from "../../components/MovieCard";
 
 const TrendingMovies = () => {
   const navigate = useNavigate();
-  const trendingMovies = useSelector(selectAllMovies);
+  const allMovies = useSelector(selectAllMovies);
+
+  // Function to parse date (handles both array and string formats)
+  const parseDate = (dateString) => {
+    if (!dateString) return new Date(0); // Default to epoch if no date
+    
+    if (Array.isArray(dateString)) {
+      // Handle [year, month, day] format
+      return new Date(dateString[0], dateString[1] - 1, dateString[2]);
+    } else {
+      // Handle string format
+      return new Date(dateString);
+    }
+  };
+
+  // Sort movies by release date (newest first) and take only first 5
+  const latestMovies = allMovies
+    .slice() // Create a copy to avoid mutating original array
+    .sort((a, b) => {
+      const dateA = parseDate(a.releaseDate);
+      const dateB = parseDate(b.releaseDate);
+      return dateB.getTime() - dateA.getTime(); // Newest first
+    })
+    .slice(0, 5); // Take only first 5 movies
 
   return (
     <section className="py-16 bg-gray-900/50">
@@ -26,7 +49,7 @@ const TrendingMovies = () => {
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6 custom-scrollbar">
-          {trendingMovies.map((movie) => (
+          {latestMovies.map((movie) => (
             <MovieCard
               key={movie.id}
               movie={movie}

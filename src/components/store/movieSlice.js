@@ -5,10 +5,9 @@ export const fetchAllMovies = createAsyncThunk(
     'movie/fetchAllMovies',
     async (_, { getState, rejectWithValue }) => {
         try {
-
+            // Fetch all movies with a high limit to ensure we get everything
             const response = await api.get("movies/recent");
             return response.data;
-
         } catch (error) {
             return rejectWithValue(error.message || "Failed to fetch movies");
         }

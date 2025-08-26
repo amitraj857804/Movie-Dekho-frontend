@@ -4,6 +4,7 @@ import { useEffect, useState, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import toast from "react-hot-toast";
 import { useAuthModalContext } from "../hooks/useAuthModalContext";
+import MovieSearch from "./MovieSearch";
 
 import {
   fetchUserName,
@@ -17,7 +18,8 @@ import {
 function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [showLogoutDropdown, setShowLogoutDropdown] = useState(false);
-  const [isScrolled, setIsScrolled] = useState(false);
+  const [isScrolled, setIsScrollehed] = useState(false);
+  const [showSearch, setShowSearch] = useState(false);
   const dropdownRef = useRef(null);
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -80,6 +82,14 @@ function Navbar() {
     setShowLogoutDropdown(false);
     toast.success("Logged out successfully!");
     navigate("/");
+  };
+
+  const handleSearchClick = () => {
+    setShowSearch(true);
+  };
+
+  const handleCloseSearch = () => {
+    setShowSearch(false);
   };
 
   return (
@@ -162,7 +172,10 @@ function Navbar() {
       </div>
 
       <div className="flex items-center gap-8">
-        <SearchIcon className="max-lg:hidden w-6 h-6 cursor-pointer" />
+        <SearchIcon 
+          className="max-lg:hidden w-6 h-6 cursor-pointer hover:text-red-500 transition-colors" 
+          onClick={handleSearchClick}
+        />
 
         {token ? (
           <div className="relative">
@@ -284,12 +297,21 @@ function Navbar() {
           </button>
         )}
       </div>
-      <MenuIcon
-        className="max-lg:ml-4 lg:hidden w-8 h-8 cursor-pointer"
-        onClick={() => {
-          setIsOpen(!isOpen);
-        }}
-      />
+      <div className="flex items-center gap-4">
+        <SearchIcon 
+          className="lg:hidden w-6 h-6 cursor-pointer hover:text-red-500 transition-colors" 
+          onClick={handleSearchClick}
+        />
+        <MenuIcon
+          className="lg:hidden w-8 h-8 cursor-pointer"
+          onClick={() => {
+            setIsOpen(!isOpen);
+          }}
+        />
+      </div>
+
+      {/* Movie Search Component */}
+      <MovieSearch isOpen={showSearch} onClose={handleCloseSearch} />
     </div>
   );
 }

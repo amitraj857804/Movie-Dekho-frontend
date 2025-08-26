@@ -7,7 +7,7 @@ import AuthModal from '../components/auth/AuthModal';
 
 function Movies() {
   const dispatch = useDispatch();
-  const movies = useSelector(selectAllMovies);
+  const allMovies = useSelector(selectAllMovies);
   
   const {
     isAuthModalOpen,
@@ -17,10 +17,41 @@ function Movies() {
   } = useAuthModalContext();
 
   useEffect(() => {
-    if (movies.length === 0) {
+    if (allMovies.length === 0) {
       dispatch(fetchAllMovies());
     }
-  }, [dispatch, movies.length]);
+  }, [dispatch, allMovies.length]);
+
+  // Scroll to top when component mounts
+  useEffect(() => {
+    window.scrollTo({
+      top: 0,
+      left: 0,
+      behavior: "smooth",
+    });
+  }, []);
+
+  // Function to parse date (handles both array and string formats)
+  const parseDate = (dateString) => {
+    if (!dateString) return new Date(0); // Default to epoch if no date
+    
+    if (Array.isArray(dateString)) {
+      // Handle [year, month, day] format
+      return new Date(dateString[0], dateString[1] - 1, dateString[2]);
+    } else {
+      // Handle string format
+      return new Date(dateString);
+    }
+  };
+
+  // Sort movies by release date (newest first)
+  const movies = allMovies
+    .slice() // Create a copy to avoid mutating original array
+    .sort((a, b) => {
+      const dateA = parseDate(a.releaseDate);
+      const dateB = parseDate(b.releaseDate);
+      return dateB.getTime() - dateA.getTime(); // Newest first
+    });
 
   return (
     <div className="min-h-screen bg-gray-900 pt-20 px-6 pb-10">
