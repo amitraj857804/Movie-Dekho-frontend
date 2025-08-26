@@ -97,8 +97,8 @@ function Navbar() {
       className={`fixed top-0 left-0 z-[9979] w-full flex items-center justify-between
        px-6 md:px-16 lg:px-36 py-5 sm:py-3 transition-all duration-300 ${
          isScrolled
-           ? "backdrop-blur-sm bg-black/70 border-b border-gray-300/20 shadow-lg"
-           : "bg-transparent"
+           ? "backdrop-blur-sm bg-black/70 border-b border-gray-700 shadow-lg"
+           : "bg-transparent border-b border-transparent"
        }`}
     >
       <Link to="/" className="max-lg:flex-1 ml-4 cursor-pointer">
