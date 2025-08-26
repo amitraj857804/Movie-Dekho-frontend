@@ -18,7 +18,7 @@ import {
 function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [showLogoutDropdown, setShowLogoutDropdown] = useState(false);
-  const [isScrolled, setIsScrollehed] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
   const dropdownRef = useRef(null);
   const navigate = useNavigate();
@@ -95,9 +95,9 @@ function Navbar() {
   return (
     <div
       className={`fixed top-0 left-0 z-[9979] w-full flex items-center justify-between
-       px-6 md:px-16 lg:px36 py-5 sm:py-3 transition-all duration-300 ${
+       px-6 md:px-16 lg:px-36 py-5 sm:py-3 transition-all duration-300 ${
          isScrolled
-           ? "backdrop-blur-sm bg-black/70 bordwer-b border-gray-300/20 shadow-lg"
+           ? "backdrop-blur-sm bg-black/70 border-b border-gray-300/20 shadow-lg"
            : "bg-transparent"
        }`}
     >
