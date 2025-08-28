@@ -40,6 +40,38 @@ const MovieSearch = ({ isOpen, onClose }) => {
     }
   }, [isOpen]);
 
+  // Prevent background scrolling when search is open
+  useEffect(() => {
+    if (isOpen) {
+      // Store the current scroll position
+      const scrollY = window.scrollY;
+      // Prevent scrolling
+      document.body.style.overflow = 'hidden';
+      document.body.style.position = 'fixed';
+      document.body.style.top = `-${scrollY}px`;
+      document.body.style.width = '100%';
+    } else {
+      // Restore scrolling
+      const scrollY = document.body.style.top;
+      document.body.style.overflow = '';
+      document.body.style.position = '';
+      document.body.style.top = '';
+      document.body.style.width = '';
+      // Restore scroll position
+      if (scrollY) {
+        window.scrollTo(0, parseInt(scrollY || '0') * -1);
+      }
+    }
+
+    // Cleanup function
+    return () => {
+      document.body.style.overflow = '';
+      document.body.style.position = '';
+      document.body.style.top = '';
+      document.body.style.width = '';
+    };
+  }, [isOpen]);
+
   // Handle search when debounced query changes
   useEffect(() => {
     if (debouncedQuery.trim()) {
@@ -152,8 +184,18 @@ const MovieSearch = ({ isOpen, onClose }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[9999] bg-black/80 backdrop-blur-sm">
-      <div className="container mx-auto px-4 py-8 h-full flex flex-col">
+    <>
+      <style>{`
+        .hide-scrollbar {
+          -ms-overflow-style: none;  /* Internet Explorer and Edge */
+          scrollbar-width: none;  /* Firefox */
+        }
+        .hide-scrollbar::-webkit-scrollbar {
+          display: none;  /* Chrome, Safari and Opera */
+        }
+      `}</style>
+      <div className="fixed inset-0 z-[9989] bg-black/80 backdrop-blur-sm">
+      <div className="container mx-auto px-4 py-6 h-full flex flex-col">
         {/* Search Header */}
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-2xl font-bold text-white">Search Movies</h2>
@@ -162,14 +204,14 @@ const MovieSearch = ({ isOpen, onClose }) => {
             className="text-white hover:text-red-500 transition-colors"
             aria-label="Close search"
           >
-            <XIcon className="w-8 h-8" />
+            <XIcon className="w-8 h-8 cursor-pointer" />
           </button>
         </div>
 
         {/* Search Input */}
         <div className="relative mb-8">
           <div className="relative">
-            <SearchIcon className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+            <SearchIcon className="absolute z-[9999] left-4 top-1/2 transform -translate-y-1/2 text-gray-500 w-5 h-5" />
             <input
               ref={searchInputRef}
               type="text"
@@ -185,14 +227,16 @@ const MovieSearch = ({ isOpen, onClose }) => {
                 className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white transition-colors"
                 aria-label="Clear search"
               >
-                <XIcon className="w-5 h-5" />
+                <XIcon className="w-5 h-5 cursor-pointer" />
               </button>
             )}
           </div>
         </div>
 
         {/* Search Results */}
-        <div className="flex-1 overflow-y-auto">
+        <div 
+          className="flex-1 overflow-y-auto hide-scrollbar"
+        >
           {isLoading && (
             <div
               className="flex items-center justify-center py-12"
@@ -252,7 +296,7 @@ const MovieSearch = ({ isOpen, onClose }) => {
                 Found {searchResults.length} movie
                 {searchResults.length !== 1 ? "s" : ""}
               </p>
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+              <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
                 {searchResults.map((movie) => (
                   <MovieCard
                     key={movie.id}
@@ -267,7 +311,8 @@ const MovieSearch = ({ isOpen, onClose }) => {
           )}
         </div>
       </div>
-    </div>
+      </div>
+    </>
   );
 };
 

@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
-
 import { MapPinIcon } from "@heroicons/react/24/outline";
 import { selectAllMovies } from "./store/movieSlice";
 import { setBookingData, setBookingStep } from "./store/bookingSlice";
@@ -190,13 +189,13 @@ function BookTicket() {
   }
 
   return (
-    <div className="min-h-screen pt-6 px-6 py-8">
-      <div className="container mx-auto max-w-6xl">
+    <div className="pt-6 px-6 py-8 pb-0">
+      <div className="container mx-auto max-w-5xl">
         <div className="bg-gray-800 rounded-lg p-6">
           {/* Step 1: Select Date */}
 
           <div>
-            <h2 className="text-xl font-semibold text-white mb-6">
+            <h2 className="text-xl font-semibold text-white mb-4">
               Select Date
             </h2>
             {dates.length > 0 ? (

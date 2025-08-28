@@ -16,8 +16,9 @@ const MovieCarousel = () => {
   const [showTrailer, setShowTrailer] = useState(false);
   const navigate = useNavigate();
 
-  // Get first 5 movies for carousel
-  const movies = useSelector(selectAllMovies);
+  // Get last 5 movies for carousel
+  const AllMovies = useSelector(selectAllMovies);
+  const movies = AllMovies.slice(0,5)
 
   const nextSlide = useCallback(() => {
     setCurrentIndex((prevIndex) =>
@@ -103,7 +104,7 @@ const MovieCarousel = () => {
 
       {/* Content Overlay */}
       <div className="relative z-10 h-full flex items-center">
-        <div className="container mx-auto px-6 lg:px-8">
+        <div className="container mx-auto px-6 lg:px-2">
           <div className="max-w-2xl">
             {/* Movie Title with Animation */}
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-4 leading-tight animate-fade-in">

@@ -17,15 +17,29 @@ function Home() {
   } = useAuthModalContext();
 
   const dispatch = useDispatch();
-  const movies = useSelector(selectAllMovies);
+  const fetchedMovies = useSelector(selectAllMovies);
   const token = useSelector(selectToken);
-  const [isLoading , setIsLoading] = useState(true)
+  const [isLoading, setIsLoading] = useState(true);
 
+  // Fetch movies on component mount
   useEffect(() => {
-    if (!movies || movies.length === 0) {
-      dispatch(fetchAllMovies());
+    const loadMovies = async () => {
+      try {
+        await dispatch(fetchAllMovies()).unwrap();
+      } catch (error) {
+        console.error("Error fetching movies:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    // Only fetch if we don't have movies already
+    if (!fetchedMovies || fetchedMovies.length === 0) {
+      loadMovies();
+    } else {
+      setIsLoading(false);
     }
-  }, [dispatch, movies]);
+  }, [dispatch, fetchedMovies]);
 
   // Fetch favorites when user is logged in
   useEffect(() => {
@@ -34,32 +48,16 @@ function Home() {
     }
   }, [dispatch, token]);
 
-   useEffect(() => {
-      const loadMovies = async () => {
-        if (movies.length === 0) {
-          
-          try {
-            await dispatch(fetchAllMovies()).unwrap();
-          } catch (error) {
-            console.error("Error fetching movies:", error);
-          }
-        }
-        setIsLoading(false);
-      };
-  
-      loadMovies();
-    }, [dispatch, movies.length]);
-
-     // Scroll to top after loading is complete or when movie ID changes
-      useEffect(() => {
-        if (!isLoading) {
-          window.scrollTo({
-            top: 0,
-            left: 0,
-            behavior: "smooth",
-          });
-        }
-      }, [ isLoading]); 
+  // Scroll to top after loading is complete
+  useEffect(() => {
+    if (!isLoading) {
+      window.scrollTo({
+        top: 0,
+        left: 0,
+        behavior: "smooth",
+      });
+    }
+  }, [isLoading]); 
 
   if (isLoading) {
     return (

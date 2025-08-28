@@ -54,9 +54,9 @@ function Movies() {
     });
 
   return (
-    <div className="min-h-screen bg-gray-900 pt-20 px-6 pb-10">
+    <div className="min-h-screen bg-gray-900 pt-20 px-6 sm:pb-20 pb-14">
       <div className="container mx-auto">
-        <h1 className="text-3xl md:text-4xl font-bold text-white mb-8">
+        <h1 className="text-3xl md:text-4xl font-bold text-white sm:text-primary text-center bg-gray-800 rounded-lg p-2 mb-6 ">
           All Movies
         </h1>
         

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { ArrowDownTrayIcon } from '@heroicons/react/24/outline';
 import { useSelector } from 'react-redux';
 import { selectToken } from './store/authSlice';
@@ -33,7 +33,7 @@ const DownloadTicketButton = ({
 
   // Size variants
   const sizeClasses = {
-    sm: 'px-3 py-1.5 text-xs',
+    sm: 'px-1 py-1 text-xs',
     md: 'px-4 py-2 text-sm',
     lg: 'px-6 py-3 text-base'
   };
@@ -89,7 +89,7 @@ const DownloadTicketButton = ({
       className={`
         flex items-center gap-2 bg-primary hover:bg-primary/90 text-white 
         rounded-lg font-medium transition-colors 
-        disabled:opacity-50 disabled:cursor-not-allowed
+        disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer
         ${sizeClasses[size]}
         ${className}
       `}

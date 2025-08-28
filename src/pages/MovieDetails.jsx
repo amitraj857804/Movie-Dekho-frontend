@@ -23,6 +23,7 @@ import BookTicket from "../components/BookTicket";
 import { useAuthModalContext } from "../hooks/useAuthModalContext";
 import AuthModal from "../components/auth/AuthModal";
 import toast from "react-hot-toast";
+import TrendingMovies from "./homepage/TrendingMovies";
 
 function MovieDetails() {
   const { id } = useParams();
@@ -35,17 +36,14 @@ function MovieDetails() {
   const [activeTab, setActiveTab] = useState("bookTicket"); // Track active tab
   const [showShareDialog, setShowShareDialog] = useState(false);
   const [copiedToClipboard, setCopiedToClipboard] = useState(false);
-
-  const {
-    isAuthModalOpen,
-    authModalTab,
-    closeAuthModal,
-    switchAuthTab,
-  } = useAuthModalContext();
+  const { isAuthModalOpen, authModalTab, closeAuthModal, switchAuthTab } =
+    useAuthModalContext();
 
   const movies = useSelector(selectAllMovies);
   const movie = movies.find((m) => m.id === parseInt(id));
 
+  const showMoreMovies = movies.filter((m)=> m.id !== parseInt(id));
+ 
   // Fetch movies if not available in store
   useEffect(() => {
     const loadMovies = async () => {
@@ -121,7 +119,7 @@ function MovieDetails() {
           </p>
           <button
             onClick={() => navigate("/")}
-            className="bg-primary hover:bg-primary/90 text-white px-6 py-2 rounded-full transition-colors duration-300"
+            className="bg-primary hover:bg-primary/90 cursor-pointer text-white px-6 py-2 rounded-full transition-colors duration-300"
           >
             Go Back Home
           </button>
@@ -180,10 +178,10 @@ function MovieDetails() {
     try {
       await navigator.clipboard.writeText(movieUrl);
       setCopiedToClipboard(true);
-      toast.success('Link copied to clipboard!');
+      toast.success("Link copied to clipboard!");
       setTimeout(() => setCopiedToClipboard(false), 2000);
     } catch (err) {
-      console.error('Failed to copy: ', err);
+      console.error("Failed to copy: ", err);
       // Fallback for older browsers
       const textArea = document.createElement("textarea");
       textArea.value = movieUrl;
@@ -191,13 +189,13 @@ function MovieDetails() {
       textArea.focus();
       textArea.select();
       try {
-        document.execCommand('copy');
+        document.execCommand("copy");
         setCopiedToClipboard(true);
-        toast.success('Link copied to clipboard!');
+        toast.success("Link copied to clipboard!");
         setTimeout(() => setCopiedToClipboard(false), 2000);
       } catch (fallbackErr) {
-        console.error('Fallback copy failed: ', fallbackErr);
-        toast.error('Failed to copy link');
+        console.error("Fallback copy failed: ", fallbackErr);
+        toast.error("Failed to copy link");
       }
       document.body.removeChild(textArea);
     }
@@ -205,32 +203,36 @@ function MovieDetails() {
 
   const shareOnSocialMedia = (platform) => {
     const movieUrl = encodeURIComponent(window.location.href);
-    const movieTitle = encodeURIComponent(movie?.title || 'Check out this movie');
-    const movieDescription = encodeURIComponent(movie?.description || 'Watch this amazing movie');
-    
-    let shareUrl = '';
-    
+    const movieTitle = encodeURIComponent(
+      movie?.title || "Check out this movie"
+    );
+    const movieDescription = encodeURIComponent(
+      movie?.description || "Watch this amazing movie"
+    );
+
+    let shareUrl = "";
+
     switch (platform) {
-      case 'facebook':
+      case "facebook":
         shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${movieUrl}`;
         break;
-      case 'twitter':
+      case "twitter":
         shareUrl = `https://twitter.com/intent/tweet?url=${movieUrl}&text=${movieTitle}`;
         break;
-      case 'whatsapp':
+      case "whatsapp":
         shareUrl = `https://wa.me/?text=${movieTitle}%20${movieUrl}`;
         break;
-      case 'telegram':
+      case "telegram":
         shareUrl = `https://t.me/share/url?url=${movieUrl}&text=${movieTitle}`;
         break;
-      case 'linkedin':
+      case "linkedin":
         shareUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${movieUrl}`;
         break;
       default:
         return;
     }
-    
-    window.open(shareUrl, '_blank', 'width=600,height=400');
+
+    window.open(shareUrl, "_blank", "width=600,height=400");
     closeShareDialog();
   };
 
@@ -282,7 +284,7 @@ function MovieDetails() {
                 {movie.certification || "Not Rated"}
               </span>
             </div>
-            <div className="absolute flex bottom-2 right-3 gap-2">
+            <div className="absolute flex bottom-2 right-3 gap-4 sm:gap-2">
               <FavoriteButton
                 movieId={movie.id}
                 movieData={movie}
@@ -291,7 +293,7 @@ function MovieDetails() {
                 showTooltip={true}
               />
 
-              <button 
+              <button
                 onClick={handleShareClick}
                 className="flex items-center justify-center bg-white/20 hover:bg-white/30 text-white p-2 rounded-full font-semibold transition-all duration-300 hover:scale-105 cursor-pointer backdrop-blur-sm border border-white/20"
               >
@@ -323,9 +325,7 @@ function MovieDetails() {
           </span>
         </div>
 
-        {activeTab === "bookTicket" && (
-          <BookTicket/>
-        )}
+        {activeTab === "bookTicket" && <BookTicket />}
         {/* Mobile Movie Information Section */}
         <div className=" px-4 py-2 ">
           {/* Conditional Content Based on Active Tab */}
@@ -385,8 +385,7 @@ function MovieDetails() {
               </div>
             </>
           )}
-
-         
+          <TrendingMovies headingText={"Also Showing Now"}  showMoreMovies={showMoreMovies} />
         </div>
 
         {/* Trailer Modal */}
@@ -394,6 +393,14 @@ function MovieDetails() {
           isOpen={showTrailer}
           onClose={() => setShowTrailer(false)}
           movie={movie}
+        />
+
+        {/* Auth Modal */}
+        <AuthModal
+          isOpen={isAuthModalOpen}
+          onClose={closeAuthModal}
+          activeTab={authModalTab}
+          onTabChange={switchAuthTab}
         />
       </div>
     );
@@ -438,7 +445,7 @@ function MovieDetails() {
                   {movie.description && movie.description.length > 100 && (
                     <button
                       onClick={toggleDescription}
-                      className="  text-primary z-50 relative hover:text-primary/80 font-semibold text-sm transition-colors duration-300 cursor-pointer"
+                      className="  text-primary z-50 relative hover:text-primary/80 font-semibold text-sm xl:text-md transition-colors duration-300 cursor-pointer"
                     >
                       {isExpanded ? ".Read Less" : "Read More"}
                     </button>
@@ -519,7 +526,7 @@ function MovieDetails() {
                         showTooltip={true}
                       />
 
-                      <button 
+                      <button
                         onClick={handleShareClick}
                         className="flex items-center justify-center gap-3 bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-full font-semibold transition-all duration-300 hover:scale-105 cursor-pointer backdrop-blur-sm border border-white/20"
                       >
@@ -535,7 +542,7 @@ function MovieDetails() {
       </div>
 
       {/* Book tickets - selcet Date,time and theatre */}
-      <BookTicket  />
+      <BookTicket />
 
       {/* Trailer Modal */}
       <Trailer
@@ -543,7 +550,7 @@ function MovieDetails() {
         onClose={() => setShowTrailer(false)}
         movie={movie}
       />
-      
+      <TrendingMovies headingText={"Also Showing Now"} showMoreMovies={showMoreMovies} />
       {/* Auth Modal */}
       <AuthModal
         isOpen={isAuthModalOpen}
@@ -557,9 +564,7 @@ function MovieDetails() {
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 px-4">
           <div className="bg-gray-800 rounded-xl p-6 max-w-md w-full border border-gray-600">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-white">
-                Share Movie
-              </h3>
+              <h3 className="text-lg font-semibold text-white">Share Movie</h3>
               <button
                 onClick={closeShareDialog}
                 className="text-gray-400 hover:text-white transition-colors"
@@ -572,7 +577,7 @@ function MovieDetails() {
               <p className="text-gray-300 text-sm mb-3">
                 Share "{movie?.title}" with your friends
               </p>
-              
+
               {/* Copy Link Section */}
               <div className="bg-gray-700 rounded-lg p-3 mb-4">
                 <div className="flex items-center justify-between">
@@ -586,8 +591,8 @@ function MovieDetails() {
                     onClick={copyToClipboard}
                     className={`flex items-center gap-2 px-3 py-2 rounded-md transition-all duration-300 ${
                       copiedToClipboard
-                        ? 'bg-green-600 text-white'
-                        : 'bg-primary hover:bg-primary/90 text-white'
+                        ? "bg-green-600 text-white"
+                        : "bg-primary hover:bg-primary/90 text-white"
                     }`}
                   >
                     {copiedToClipboard ? (
@@ -608,10 +613,12 @@ function MovieDetails() {
 
             {/* Social Media Sharing */}
             <div>
-              <p className="text-gray-400 text-sm mb-3">Share on social media</p>
+              <p className="text-gray-400 text-sm mb-3">
+                Share on social media
+              </p>
               <div className="grid grid-cols-2 gap-3">
                 <button
-                  onClick={() => shareOnSocialMedia('facebook')}
+                  onClick={() => shareOnSocialMedia("facebook")}
                   className="flex items-center gap-3 p-3 bg-[#1877F2] hover:bg-[#1877F2]/90 text-white rounded-lg transition-colors"
                 >
                   <div className="w-5 h-5 bg-white rounded-sm flex items-center justify-center">
@@ -621,7 +628,7 @@ function MovieDetails() {
                 </button>
 
                 <button
-                  onClick={() => shareOnSocialMedia('twitter')}
+                  onClick={() => shareOnSocialMedia("twitter")}
                   className="flex items-center gap-3 p-3 bg-[#1DA1F2] hover:bg-[#1DA1F2]/90 text-white rounded-lg transition-colors"
                 >
                   <div className="w-5 h-5 bg-white rounded-sm flex items-center justify-center">
@@ -631,7 +638,7 @@ function MovieDetails() {
                 </button>
 
                 <button
-                  onClick={() => shareOnSocialMedia('whatsapp')}
+                  onClick={() => shareOnSocialMedia("whatsapp")}
                   className="flex items-center gap-3 p-3 bg-[#25D366] hover:bg-[#25D366]/90 text-white rounded-lg transition-colors"
                 >
                   <div className="w-5 h-5 bg-white rounded-sm flex items-center justify-center">
@@ -641,7 +648,7 @@ function MovieDetails() {
                 </button>
 
                 <button
-                  onClick={() => shareOnSocialMedia('telegram')}
+                  onClick={() => shareOnSocialMedia("telegram")}
                   className="flex items-center gap-3 p-3 bg-[#0088CC] hover:bg-[#0088CC]/90 text-white rounded-lg transition-colors"
                 >
                   <div className="w-5 h-5 bg-white rounded-sm flex items-center justify-center">
@@ -651,7 +658,7 @@ function MovieDetails() {
                 </button>
 
                 <button
-                  onClick={() => shareOnSocialMedia('linkedin')}
+                  onClick={() => shareOnSocialMedia("linkedin")}
                   className="flex items-center gap-3 p-3 bg-[#0A66C2] hover:bg-[#0A66C2]/90 text-white rounded-lg transition-colors col-span-2"
                 >
                   <div className="w-5 h-5 bg-white rounded-sm flex items-center justify-center">

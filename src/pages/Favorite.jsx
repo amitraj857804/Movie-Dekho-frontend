@@ -22,7 +22,7 @@ function Favorite() {
   const error = useSelector(selectFavoritesError);
   const token = useSelector(selectToken);
   const navigate = useNavigate();
-  
+
   const {
     isAuthModalOpen,
     authModalTab,
@@ -49,7 +49,7 @@ function Favorite() {
     try {
       await dispatch(clearAllFavorites()).unwrap();
     } catch (error) {
-      console.error('Error clearing all favorites:', error);
+      console.error("Error clearing all favorites:", error);
       // Could show a toast notification here
     }
   };
@@ -59,7 +59,7 @@ function Favorite() {
       <>
         <div className="min-h-screen bg-gray-900 pt-20 px-6">
           <div className="container mx-auto">
-            <h1 className="text-3xl md:text-4xl font-bold text-white mb-8">
+            <h1 className="text-3xl md:text-4xl font-bold text-white  sm:text-primary text-center bg-gray-800 rounded-lg p-2  mb-8">
               My Favorites
             </h1>
             <div className="text-center py-16">
@@ -68,7 +68,7 @@ function Favorite() {
                 You need to be logged in to view your favourite movies
               </p>
               <button
-                onClick={() => openAuthModal('login')}
+                onClick={() => openAuthModal("login")}
                 className="bg-primary hover:bg-primary/90 text-white px-6 py-3 rounded-full transition-colors duration-300 font-semibold cursor-pointer"
               >
                 Login to View Favorites
@@ -76,7 +76,7 @@ function Favorite() {
             </div>
           </div>
         </div>
-        
+
         {/* Auth Modal */}
         <AuthModal
           isOpen={isAuthModalOpen}
@@ -97,7 +97,9 @@ function Favorite() {
           </h1>
           <div className="text-center py-16">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-            <h2 className="text-xl text-gray-400 mb-4">Loading favourites...</h2>
+            <h2 className="text-xl text-gray-400 mb-4">
+              Loading favourites...
+            </h2>
             <p className="text-gray-500">
               Please wait while we fetch your favourite movies
             </p>
@@ -135,7 +137,7 @@ function Favorite() {
     <>
       <div className="min-h-screen bg-gray-900 pt-20 px-6 py-16">
         <div className="container mx-auto">
-          <h1 className="text-3xl md:text-4xl font-bold text-white mb-6">
+          <h1 className="text-3xl md:text-4xl font-bold  text-white sm:text-primary text-center bg-gray-800 rounded-lg p-2 mb-6">
             My Favourites
           </h1>
 
@@ -156,17 +158,21 @@ function Favorite() {
                   />
                 ))}
               </div>
+              <div className="flex justify-end">
+
+           
               <button
                 onClick={handleClearAllFavorites}
                 disabled={actionLoading}
-                className={`text-xl absolute right-12 bottom-0 mb-2 font-semibold cursor-pointer mt-5 transition-all duration-300 ${
-                  actionLoading 
-                    ? 'text-gray-500 cursor-not-allowed' 
-                    : 'text-primary hover:!text-white'
+                className={`text-xl  bottom-0 sm:mb-2 -mb-6 font-semibold cursor-pointer mt-5 transition-all duration-300 ${
+                  actionLoading
+                    ? "text-gray-500 cursor-not-allowed"
+                    : "text-primary hover:!text-white"
                 }`}
               >
-                {actionLoading ? 'Removing...' : 'Remove all'}
+                {actionLoading ? "Removing..." : "Remove all"}
               </button>
+                 </div>
             </>
           ) : (
             <div className="text-center py-16">
@@ -187,10 +193,12 @@ function Favorite() {
                     />
                   </svg>
                 </div>
-                <h2 className="text-xl text-gray-400 mb-4">No favourites yet</h2>
+                <h2 className="text-xl text-gray-400 mb-4">
+                  No favourites yet
+                </h2>
                 <p className="text-gray-500 mb-6">
-                  Start adding movies to your favourites by clicking the heart icon
-                  on any movie you love!
+                  Start adding movies to your favourites by clicking the heart
+                  icon on any movie you love!
                 </p>
                 <button
                   onClick={() => navigate("/movies")}
@@ -203,7 +211,7 @@ function Favorite() {
           )}
         </div>
       </div>
-      
+
       {/* Auth Modal */}
       <AuthModal
         isOpen={isAuthModalOpen}

@@ -95,7 +95,7 @@ function Navbar() {
   return (
     <div
       className={`fixed top-0 left-0 z-[9979] w-full flex items-center justify-between
-       px-6 md:px-16 lg:px-32 py-5 sm:py-3 transition-all duration-300 ${
+       px-4 md:px-6 lg:px-22  py-5 sm:py-3 transition-all duration-300 ${
          isScrolled
            ? "backdrop-blur-sm bg-black/70 border-b border-gray-200/20 shadow-lg"
            : "bg-transparent border-b border-transparent"
@@ -152,21 +152,14 @@ function Navbar() {
         >
           Movies
         </Link>
+       
         <Link
           onClick={() => {
             scrollTo(0, 0), setIsOpen(false);
           }}
-          to="/"
+          to="/my-bookings"
         >
-          Theatres
-        </Link>
-        <Link
-          onClick={() => {
-            scrollTo(0, 0), setIsOpen(false);
-          }}
-          to="/"
-        >
-          Releases
+          Bookings
         </Link>
         <Link
           onClick={() => {

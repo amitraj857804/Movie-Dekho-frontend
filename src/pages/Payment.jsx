@@ -414,7 +414,7 @@ function Payment() {
         setPaymentError("Please enter a valid month (01-12)");
         return false;
       }
-      
+      const year = parseInt(expiryDate.substring(3,5))
       // Check if the expiry date is not in the past
       const currentDate = new Date();
       const currentYear = currentDate.getFullYear() % 100; // Get last 2 digits

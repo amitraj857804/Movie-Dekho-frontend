@@ -40,7 +40,6 @@ function MyBookings() {
           },
         });
 
-        console.log("Bookings response:", response.data);
         setBookings(response.data || []);
         setError(null);
       } catch (error) {
@@ -63,6 +62,83 @@ function MyBookings() {
 
     fetchBookings();
   }, [token]);
+
+  // Handle refresh bookings
+  const handleRefresh = () => {
+    if (token) {
+      const fetchBookings = async () => {
+        try {
+          setLoading(true);
+          setError(null);
+          const response = await api.get("/api/bookings/my-bookings", {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+          });
+
+          setBookings(response.data || []);
+          setError(null);
+        } catch (error) {
+          console.error("Error fetching bookings:", error);
+          if (error.response?.status === 401) {
+            setError("Session expired. Please login again.");
+            toast.error("Session expired. Please login again.");
+          } else if (error.response?.status === 404) {
+            setBookings([]);
+            setError(null);
+          } else {
+            setError("Failed to load bookings. Please try again.");
+            toast.error("Failed to load bookings");
+          }
+        } finally {
+          setLoading(false);
+        }
+      };
+      fetchBookings();
+    }
+  };
+
+  // Show login prompt if no token
+  if (!token) {
+    return (
+      <div className="min-h-screen bg-gray-900 pt-20 sm:px-30 px-6">
+        <div className="container mx-auto max-w-6xl">
+          <div className="mb-8 flex items-center relative bg-gray-800 rounded-lg p-2">
+            <button
+              onClick={() => navigate("/")}
+              className="absolute left-4 text-white hover:text-primary transition-colors"
+            >
+              <ArrowLeftIcon className="w-5 h-5 cursor-pointer" />
+            </button>
+            <div className="flex-1 flex justify-center">
+              <h1 className="text-3xl md:text-4xl font-bold text-white sm:text-primary text-center">
+                My Bookings
+              </h1>
+            </div>
+          </div>
+
+          <div className="text-center py-20">
+            <div className="mb-6">
+              <TicketIcon className="w-20 h-20 text-gray-600 mx-auto mb-4" />
+              <h2 className="text-2xl font-semibold text-gray-400 mb-2">
+                Please login to view your bookings
+              </h2>
+              <p className="text-gray-500 mb-6">
+                Sign in to see your movie bookings and tickets
+              </p>
+              <button
+                onClick={() => navigate("/")}
+                className="bg-primary hover:bg-primary/90 text-white px-6 py-3 cursor-pointer rounded-lg font-semibold transition-colors"
+              >
+                Go to Home
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   // Format DateTime function to handle your backend response
   const formatDateTime = (dateTimeString) => {
@@ -100,21 +176,20 @@ function MyBookings() {
   // Loading state
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-900 pt-20 px-6">
+      <div className="min-h-screen bg-gray-900 pt-20 sm:px-30 px-6">
         <div className="container mx-auto max-w-6xl">
-          <div className="mb-8 flex gap-12 justify-start items-center ">
-            <div className="w-2">
-              <button
-                onClick={() => navigate("/")}
-                className="gap-2 text-white hover:text-primary transition-colors mb-4"
-              >
-                <ArrowLeftIcon className="w-5 h-5" />
-              </button>
+          <div className="mb-8 flex items-center relative w-full bg-gray-800 rounded-lg p-2">
+            <button
+              onClick={() => navigate("/")}
+              className="absolute left-4 text-white hover:text-primary transition-colors"
+            >
+              <ArrowLeftIcon className="w-5 h-5 cursor-pointer" />
+            </button>
+            <div className="flex-1 flex justify-center">
+              <h1 className="text-3xl md:text-4xl font-bold text-white sm:text-primary text-center">
+                My Bookings
+              </h1>
             </div>
-
-            <h1 className="text-3xl md:text-4xl font-bold text-white flex items-center justify-center ">
-              My Bookings
-            </h1>
           </div>
 
           <div className="flex justify-center items-center py-20">
@@ -133,23 +208,46 @@ function MyBookings() {
       <div className="container mx-auto max-w-6xl">
         {/* Header */}
         <div className="mb-8">
-          <button
-            onClick={() => navigate("/")}
-            className="flex items-center gap-2 text-white hover:text-primary transition-colors mb-4"
-          >
-            <ArrowLeftIcon className="w-5 h-5" />
-            Back to Home
-          </button>
-          <h1 className="text-3xl md:text-4xl font-bold text-white mb-2">
-            My Bookings
-          </h1>
-          <p className="text-gray-400">
-            {bookings.length > 0
-              ? `You have ${bookings.length} booking${
-                  bookings.length > 1 ? "s" : ""
-                }`
-              : "Your movie bookings will appear here"}
-          </p>
+         <div className="mb-8 flex items-center relative bg-gray-800 rounded-lg p-2">
+            <button
+              onClick={() => navigate("/")}
+              className="absolute left-4 text-white hover:text-primary transition-colors"
+            >
+              <ArrowLeftIcon className="w-5 h-5 cursor-pointer" />
+            </button>
+            <div className="flex-1 flex justify-center">
+              <h1 className="text-3xl md:text-4xl font-bold text-white sm:text-primary text-center">
+                My Bookings
+              </h1>
+            </div>
+            <button
+              onClick={handleRefresh}
+              disabled={loading}
+              className="absolute right-4 text-white hover:text-primary transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              title="Refresh bookings"
+            >
+              <svg className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
+            </button>
+          </div>
+          <div className="flex justify-between items-center">
+            <p className="text-gray-400">
+              {bookings.length > 0
+                ? `You have ${bookings.length} booking${
+                    bookings.length > 1 ? "s" : ""
+                  }`
+                : "Your movie bookings will appear here"}
+            </p>
+            {error && (
+              <button
+                onClick={handleRefresh}
+                className="text-primary hover:text-primary/80 text-sm transition-colors"
+              >
+                Try again
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Error State */}
@@ -249,6 +347,11 @@ function MyBookings() {
                               booking.theaterName ||
                               "Theater Name"}
                           </span>
+                          <span className="text-sm">
+                            {booking.cinema?.location ||
+                              booking.location ||
+                              "Theater address"}
+                          </span>
                         </div>
                         <div className="flex items-center gap-2 text-gray-300">
                           <CalendarIcon className="w-4 h-4 text-primary" />
@@ -277,7 +380,7 @@ function MyBookings() {
                     </div>
 
                     {/* Booking Date and Actions */}
-                    <div className="border-t border-gray-700 pt-3 flex justify-between items-center">
+                    <div className="border-t border-gray-700 pt-3 hidden lg:flex justify-between items-center">
                       <p className="text-gray-500 text-sm">
                         Booked on: {formatDateTime(booking.bookingTime).date}
                       </p>
@@ -310,6 +413,37 @@ function MyBookings() {
                     </div>
                   </div>
                 </div>
+                  <div className="border-t border-gray-700 pt-3 flex lg:hidden justify-between items-center">
+                      <p className="text-gray-500 text-sm">
+                        Booked on: {formatDateTime(booking.bookingTime).date}
+                      </p>
+
+                      {/* Download Ticket Button */}
+                      <DownloadTicketButton
+                        bookingId={booking.id || booking.bookingId}
+                        status={booking.status}
+                        size="md"
+                        onDownloadStart={() =>
+                          console.log(
+                            "Download started for booking:",
+                            booking.id || booking.bookingId
+                          )
+                        }
+                        onDownloadComplete={() =>
+                          console.log(
+                            "Download completed for booking:",
+                            booking.id || booking.bookingId
+                          )
+                        }
+                        onDownloadError={(error) =>
+                          console.error(
+                            "Download error for booking:",
+                            booking.id || booking.bookingId,
+                            error
+                          )
+                        }
+                      />
+                    </div>
               </div>
             ))}
           </div>
