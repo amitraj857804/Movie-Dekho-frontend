@@ -35,7 +35,7 @@ const ShareDialog = ({
   // Create sharing message
   const createShareMessage = () => {
     const movieTitle = movie?.title || "Movie";
-    const cinemaName = selectedCinema?.name || "Cinema";
+    const cinemaName = selectedCinema?.theatreName || "Cinema";
     const date = formatDate(selectedDateObj);
     const time = selectedTimeWithAmPm || "";
     const seatNumbers = selectedSeats?.map(seat => seat.seatNumber || seat.id).join(", ") || "";

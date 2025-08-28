@@ -731,7 +731,7 @@ function Payment() {
               <div className="flex flex-col gap-3">
                 <button
                   onClick={() => setShowShareDialog(true)}
-                  className="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg font-semibold transition-colors cursor-pointer"
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-semibold transition-colors cursor-pointer"
                 >
                   Share Your Booking
                 </button>
@@ -848,7 +848,7 @@ function Payment() {
                   <span className="text-xs text-gray-400">Movie</span>
                 </div>
 
-                <div className="w-8 h-px bg-primary"></div>
+                <div className="w-6 h-px bg-primary"></div>
 
                 <div className="flex items-center flex-col gap-0.5">
                   <div className="w-6 h-6 bg-primary text-white rounded-full text-xs font-medium flex items-center justify-center">
@@ -857,7 +857,7 @@ function Payment() {
                   <span className="text-xs text-gray-400">Seats</span>
                 </div>
 
-                <div className="w-8 h-px bg-primary"></div>
+                <div className="w-6 h-px bg-primary"></div>
 
                 <div className="flex items-center flex-col gap-0.5">
                   <div className="w-6 h-6 bg-primary text-white rounded-full text-xs font-medium flex items-center justify-center animate-pulse">
@@ -866,7 +866,7 @@ function Payment() {
                   <span className="text-xs text-primary">Pay</span>
                 </div>
 
-                <div className="w-8 h-px bg-gray-600"></div>
+                <div className="w-6 h-px bg-gray-600"></div>
 
                 <div className="flex items-center flex-col gap-0.5">
                   <div className="w-6 h-6 bg-gray-600 text-gray-400 rounded-full text-xs font-medium flex items-center justify-center">

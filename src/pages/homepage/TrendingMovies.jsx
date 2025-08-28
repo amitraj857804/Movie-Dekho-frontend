@@ -49,7 +49,7 @@ const TrendingMovies = ({ headingText, showMoreMovies }) => {
 
   return (
     <section className="py-16 bg-gray-900/50">
-      <div className="container mx-auto px-6">
+      <div className={`container mx-auto ${headingText? "px-2" : "px-6"} `}>
         <div className="flex items-center justify-between mb-12">
           <h2 className="text-3xl md:text-4xl font-bold text-white">
             {headingText || "Latest Releases"}

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { SearchIcon, XIcon, LoaderIcon } from "lucide-react";
 import { searchMovies } from "../api/searchApi";
 import MovieCard from "./MovieCard";

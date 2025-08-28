@@ -8,6 +8,7 @@ import { useSelector, useDispatch } from "react-redux";
 import { useAuthModalContext } from "../hooks/useAuthModalContext";
 import AuthModal from "../components/auth/AuthModal";
 import toast from "react-hot-toast";
+import { XIcon } from "lucide-react";
 import {
   selectCurrentBooking,
   setBookingData,
@@ -68,8 +69,6 @@ function SeatLayout() {
         const slotId = selectedCinema?.slotId || selectedCinema?.id || 12;
         const response = await api.get(`api/seats/slot/${slotId}`);
         setSeats(response.data.seats);
-        
-        
       } catch (err) {
         console.error("Error fetching seats:", err);
         setError(err.response?.data?.message || err.message);
@@ -85,7 +84,6 @@ function SeatLayout() {
       cleanupRef.current = true;
     };
   }, [currentBooking, movie, selectedCinema, navigate, id, dispatch, token]);
-
 
   // Scroll to top when loading completes
   useEffect(() => {
@@ -105,7 +103,7 @@ function SeatLayout() {
     }
 
     const seatNumber = seat.seatNumber || seat.no;
-    
+
     const isSelected = selectedSeats.find((s) => s.seatNumber === seatNumber);
 
     let newSelectedSeats;
@@ -118,7 +116,6 @@ function SeatLayout() {
       // Add seat to selection (limit based on ticket count)
       if (selectedSeats.length < ticketCount) {
         newSelectedSeats = [...selectedSeats, seat];
-        
       } else {
         toast.error(`You can only select up to ${ticketCount} seats`);
         return;
@@ -141,8 +138,10 @@ function SeatLayout() {
   // Get seat status for styling
   const getSeatClass = (seat) => {
     const seatNumber = seat.seatNumber || seat.no;
-    const isSelected = selectedSeats.find((s) => (s.seatNumber || s.no) === seatNumber);
-    const isBooked = seat.lockedBySession || seat.status === "BOOKED" ;
+    const isSelected = selectedSeats.find(
+      (s) => (s.seatNumber || s.no) === seatNumber
+    );
+    const isBooked = seat.lockedBySession || seat.status === "BOOKED";
 
     if (isBooked) {
       return "bg-red-500 cursor-not-allowed opacity-50 ";
@@ -191,7 +190,6 @@ function SeatLayout() {
       // Navigate to payment (no state needed, using Redux)
       navigate("/payment");
     } catch (error) {
-      
       if (error.response?.status === 409) {
         toast.error(error.response.data);
         // Refresh seat layout to show updated availability
@@ -364,7 +362,7 @@ function SeatLayout() {
                   <span className="text-xs text-gray-400 ">Movie</span>
                 </div>
 
-                <div className="w-8 h-px bg-primary"></div>
+                <div className="w-6 h-px bg-primary"></div>
 
                 <div className="flex items-center flex-col gap-0.5">
                   <div className="w-6 h-6 bg-primary text-white rounded-full text-xs font-medium flex items-center justify-center animate-pulse">
@@ -373,7 +371,7 @@ function SeatLayout() {
                   <span className="text-xs text-primary ">Seats</span>
                 </div>
 
-                <div className="w-8 h-px bg-gray-600"></div>
+                <div className="w-6 h-px bg-gray-600"></div>
 
                 <div className="flex items-center flex-col gap-0.5">
                   <div className="w-6 h-6 bg-gray-600 text-gray-400 rounded-full text-xs font-medium flex items-center justify-center">
@@ -382,7 +380,7 @@ function SeatLayout() {
                   <span className="text-xs text-gray-400 ">Pay</span>
                 </div>
 
-                <div className="w-8 h-px bg-gray-600"></div>
+                <div className="w-6 h-px bg-gray-600"></div>
 
                 <div className="flex items-center flex-col gap-0.5">
                   <div className="w-6 h-6 bg-gray-600 text-gray-400 rounded-full text-xs font-medium flex items-center justify-center">
@@ -522,7 +520,7 @@ function SeatLayout() {
 
           {/* Booking Summary */}
           <div className="lg:col-span-1">
-            <div className="bg-gray-800 rounded-lg p-6 sticky top-6">
+            <div className="bg-gray-800 rounded-lg p-6 sticky top-6 mb-8">
               <h3 className="text-lg font-semibold text-white mb-4">
                 Booking Summary
               </h3>
@@ -569,13 +567,13 @@ function SeatLayout() {
                 )}
               </div>
 
-              {/* Price Breakdown */}
               {selectedSeats.length > 0 && (
                 <div className="mb-6 space-y-2">
                   <div className="flex justify-between text-gray-300">
                     <span>{selectedSeats.length} Seats </span>
+                    <XIcon className="hover:text-primary cursor-pointer" onClick={()=> setSelectedSeats([])} />
                   </div>
-
+                  {/* Price Breakdown */}
                   <div className="flex justify-between text-lg font-bold text-white border-t border-gray-600 pt-2">
                     <span>Total</span>
                     <span className="text-primary">
