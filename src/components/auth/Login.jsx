@@ -216,9 +216,12 @@ function Login({ onSwitchTab, onClose, isModal = false,}) {
           <button
             disabled={loader}
             type="submit"
-            className="  font-semibold text-white  bg-gradient-to-bl from-primary to bg-red-600  hover:border hover:border-primary hover:bg-black   sm:w-[40%] w-[60%] py-2 rounded-full transition-colors duration-100 my-3 cursor-pointer"
+            className="  font-semibold text-white flex justify-center text-center bg-gradient-to-bl from-primary to bg-red-600  hover:border hover:border-primary hover:bg-black   sm:w-[40%] w-[60%] py-2 rounded-full transition-colors duration-100 my-3 cursor-pointer"
           >
-            {loader ? "Loading..." : "Login"}
+            {loader && (
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+            )}
+            {loader ? "" : "Login"}
           </button>
         </div>
         <div

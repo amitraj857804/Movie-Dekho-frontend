@@ -341,9 +341,12 @@ const SignUp = ({ onSwitchTab, onClose, isModal = false, modalNavigationContext 
           <button
             disabled={loader}
             type="submit"
-            className="font-semibold text-white bg-gradient-to-bl from-primary to bg-red-600 sm:w-[35%] w-[60%] py-2 rounded-full  hover:border hover:border-primary hover:bg-black transition-colors duration-100 my-3 cursor-pointer"
+            className="font-semibold text-white flex justify-center bg-gradient-to-bl from-primary to bg-red-600 sm:w-[35%] w-[60%] py-2 rounded-full  hover:border hover:border-primary hover:bg-black transition-colors duration-100 my-3 cursor-pointer"
           >
-            {loader ? "Loading..." : "SignUp"}
+         {loader && (
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+            )}
+            {loader ? "" : "Login"}
           </button>
         </div>{" "}
       </form>

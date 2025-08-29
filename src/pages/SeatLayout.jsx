@@ -571,7 +571,7 @@ function SeatLayout() {
                 <div className="mb-6 space-y-2">
                   <div className="flex justify-between text-gray-300">
                     <span>{selectedSeats.length} Seats </span>
-                    <XIcon className="hover:text-primary cursor-pointer" onClick={()=> setSelectedSeats([])} />
+                    <XIcon className="hover:text-primary cursor-pointer w-5 h-5" onClick={()=> setSelectedSeats([])} />
                   </div>
                   {/* Price Breakdown */}
                   <div className="flex justify-between text-lg font-bold text-white border-t border-gray-600 pt-2">

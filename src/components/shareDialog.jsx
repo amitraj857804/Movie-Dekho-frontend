@@ -123,7 +123,7 @@ Excited for the show! 🍿✨
   };
 
   return (
-    <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 px-4">
+    <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 px-4 pt-20">
       <div className={`bg-gray-800 rounded-xl max-w-md w-full border border-gray-600 ${className}`}>
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-gray-600">
@@ -144,7 +144,7 @@ Excited for the show! 🍿✨
             onClick={onClose}
             className="p-2 hover:bg-gray-700 rounded-lg transition-colors"
           >
-            <XMarkIcon className="w-5 h-5 text-gray-400" />
+            <XMarkIcon className="w-5 h-5 text-gray-400 cursor-pointer" />
           </button>
         </div>
 

@@ -1,4 +1,4 @@
-import { Link, useNavigate } from "react-router-dom";
+import { Link, NavLink, useNavigate } from "react-router-dom";
 import { MenuIcon, SearchIcon, XIcon } from "lucide-react";
 import { useEffect, useState, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
@@ -136,39 +136,43 @@ function Navbar() {
           onClick={() => setIsOpen(!isOpen)}
         />
 
-        <Link
+        <NavLink
           onClick={() => {
             scrollTo(0, 0), setIsOpen(false);
           }}
           to="/"
+          className={({isActive}) => isActive? "text-primary " : ""}
         >
           Home
-        </Link>
-        <Link
+        </NavLink>
+        <NavLink
           onClick={() => {
             scrollTo(0, 0), setIsOpen(false);
           }}
           to="/movies"
+          className={({isActive}) => isActive? "text-primary " : ""}
         >
           Movies
-        </Link>
+        </NavLink>
        
-        <Link
+        <NavLink
           onClick={() => {
             scrollTo(0, 0), setIsOpen(false);
           }}
           to="/my-bookings"
+          className={({isActive}) => isActive? "text-primary " : ""}
         >
           Bookings
-        </Link>
-        <Link
+        </NavLink>
+        <NavLink
           onClick={() => {
             scrollTo(0, 0), setIsOpen(false);
           }}
           to="/favorite"
+          className={({isActive}) => isActive? "text-primary " : ""}
         >
           Favourite
-        </Link>
+        </NavLink>
       </div>
 
       <div className="flex items-center gap-8">

@@ -6,6 +6,7 @@ import SeatLayout from "./pages/SeatLayout";
 import MyBookings from "./pages/MyBookings";
 import Favorite from "./pages/Favorite";
 import Footer from "./components/Footer";
+import NotFound from "./pages/NotFound";
 
 
 export {
@@ -17,4 +18,5 @@ export {
     SeatLayout,
     MyBookings,
     Favorite,
+    NotFound,
 }

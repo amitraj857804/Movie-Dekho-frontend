@@ -13,6 +13,7 @@ import {
   CheckIcon,
   XMarkIcon,
 } from "@heroicons/react/24/solid";
+import { FaWhatsapp ,FaTelegramPlane  } from "react-icons/fa";
 import {
   selectAllMovies,
   fetchAllMovies,
@@ -402,9 +403,124 @@ function MovieDetails() {
           activeTab={authModalTab}
           onTabChange={switchAuthTab}
         />
+
+         {/* Share Dialog */}
+      {showShareDialog && (
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 px-4">
+          <div className="bg-gray-800 rounded-xl p-6 max-w-md w-full border border-gray-600">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-white">Share Movie</h3>
+              <button
+                onClick={closeShareDialog}
+                className="text-gray-400 hover:text-white transition-colors"
+              >
+                <XMarkIcon className="w-6 h-6" />
+              </button>
+            </div>
+
+            <div className="mb-4">
+              <p className="text-gray-300 text-sm mb-3">
+                Share "{movie?.title}" with your friends
+              </p>
+
+              {/* Copy Link Section */}
+              <div className="bg-gray-700 rounded-lg p-3 mb-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex-1 mr-3">
+                    <p className="text-gray-400 text-xs mb-1">Movie Link</p>
+                    <p className="text-white text-sm truncate">
+                      {window.location.href}
+                    </p>
+                  </div>
+                  <button
+                    onClick={copyToClipboard}
+                    className={`flex items-center gap-2 px-3 py-2 cursor-pointer rounded-md transition-all duration-300 ${
+                      copiedToClipboard
+                        ? "bg-green-600 text-white"
+                        : "bg-primary hover:bg-primary/90 text-white"
+                    }`}
+                  >
+                    {copiedToClipboard ? (
+                      <>
+                        <CheckIcon className="w-4 h-4" />
+                        <span className="text-sm">Copied!</span>
+                      </>
+                    ) : (
+                      <>
+                        <ClipboardDocumentIcon className="w-4 h-4" />
+                        <span className="text-sm">Copy</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Social Media Sharing */}
+            <div>
+              <p className="text-gray-400 text-sm mb-3">
+                Share on social media
+              </p>
+              <div className="grid grid-cols-2 gap-3">
+                <button
+                  onClick={() => shareOnSocialMedia("facebook")}
+                  className="flex items-center gap-3 p-3 bg-[#1877F2] hover:bg-[#1877F2]/90 text-white rounded-lg transition-colors"
+                >
+                  <div className="w-5 h-5 bg-white rounded-sm flex items-center justify-center">
+                    <span className="text-[#1877F2] font-bold text-sm">f</span>
+                  </div>
+                  <span className="font-medium">Facebook</span>
+                </button>
+
+                <button
+                  onClick={() => shareOnSocialMedia("twitter")}
+                  className="flex items-center gap-3 p-3 bg-black hover:bg-gray-900 text-white rounded-lg transition-colors"
+                >
+                  <div className="w-5 h-5 bg-gray-800 rounded-sm flex items-center justify-center">
+                    <span className="text-white font-bold text-sm">𝕏</span>
+                  </div>
+                  <span className="font-medium">Twitter</span>
+                </button>
+
+                <button
+                  onClick={() => shareOnSocialMedia("whatsapp")}
+                  className="flex items-center gap-3 p-3 bg-[#25D366] hover:bg-[#25D366]/90 text-white rounded-lg transition-colors"
+                >
+                  <div className="w-5 h-5 bg-white rounded-sm flex items-center justify-center">
+                    <span className="text-[#25D366] font-bold text-xs"><FaWhatsapp /></span>
+                  </div>
+                  <span className="font-medium">WhatsApp</span>
+                </button>
+
+                <button
+                  onClick={() => shareOnSocialMedia("telegram")}
+                  className="flex items-center gap-3 p-3 bg-[#0088CC] hover:bg-[#0088CC]/90 text-white rounded-lg transition-colors"
+                >
+                  <div className="w-5 h-5 bg-white rounded-sm flex items-center justify-center">
+                    <span className="text-[#0088CC] font-bold text-sm"><FaTelegramPlane /></span>
+                  </div>
+                  <span className="font-medium">Telegram</span>
+                </button>
+
+                <button
+                  onClick={() => shareOnSocialMedia("linkedin")}
+                  className="flex items-center gap-3 p-3 bg-[#0A66C2] hover:bg-[#0A66C2]/90 text-white rounded-lg transition-colors col-span-2"
+                >
+                  <div className="w-5 h-5 bg-white rounded-sm flex items-center justify-center">
+                    <span className="text-[#0A66C2] font-bold text-sm">in</span>
+                  </div>
+                  <span className="font-medium">LinkedIn</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
       </div>
     );
   }
+else{
+
 
   // Desktop View Layout
   return (
@@ -561,7 +677,8 @@ function MovieDetails() {
 
       {/* Share Dialog */}
       {showShareDialog && (
-        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 px-4">
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 px-4"
+        >
           <div className="bg-gray-800 rounded-xl p-6 max-w-md w-full border border-gray-600">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-semibold text-white">Share Movie</h3>
@@ -569,7 +686,7 @@ function MovieDetails() {
                 onClick={closeShareDialog}
                 className="text-gray-400 hover:text-white transition-colors"
               >
-                <XMarkIcon className="w-6 h-6" />
+                <XMarkIcon className="w-6 h-6 cursor-pointer" />
               </button>
             </div>
 
@@ -589,7 +706,7 @@ function MovieDetails() {
                   </div>
                   <button
                     onClick={copyToClipboard}
-                    className={`flex items-center gap-2 px-3 py-2 rounded-md transition-all duration-300 ${
+                    className={`flex items-center gap-2 px-3 py-2 cursor-pointer rounded-md transition-all duration-300 ${
                       copiedToClipboard
                         ? "bg-green-600 text-white"
                         : "bg-primary hover:bg-primary/90 text-white"
@@ -619,7 +736,7 @@ function MovieDetails() {
               <div className="grid grid-cols-2 gap-3">
                 <button
                   onClick={() => shareOnSocialMedia("facebook")}
-                  className="flex items-center gap-3 p-3 bg-[#1877F2] hover:bg-[#1877F2]/90 text-white rounded-lg transition-colors"
+                  className="flex items-center gap-3 p-3 bg-[#1877F2]  hover:bg-[#1877F2]/90 text-white rounded-lg transition-colors cursor-pointer"
                 >
                   <div className="w-5 h-5 bg-white rounded-sm flex items-center justify-center">
                     <span className="text-[#1877F2] font-bold text-sm">f</span>
@@ -629,37 +746,37 @@ function MovieDetails() {
 
                 <button
                   onClick={() => shareOnSocialMedia("twitter")}
-                  className="flex items-center gap-3 p-3 bg-[#1DA1F2] hover:bg-[#1DA1F2]/90 text-white rounded-lg transition-colors"
+                  className="flex items-center gap-3 p-3 bg-black hover:bg-gray-950 text-white rounded-lg transition-colors cursor-pointer"
                 >
-                  <div className="w-5 h-5 bg-white rounded-sm flex items-center justify-center">
-                    <span className="text-[#1DA1F2] font-bold text-sm">𝕏</span>
+                  <div className="w-5 h-5 bg-gray-800 rounded-sm flex items-center justify-center">
+                    <span className="text-white font-bold text-sm">𝕏</span>
                   </div>
                   <span className="font-medium">Twitter</span>
                 </button>
 
                 <button
                   onClick={() => shareOnSocialMedia("whatsapp")}
-                  className="flex items-center gap-3 p-3 bg-[#25D366] hover:bg-[#25D366]/90 text-white rounded-lg transition-colors"
+                  className="flex items-center gap-3 p-3 bg-[#25D366] hover:bg-[#25D366]/90 text-white rounded-lg transition-colors cursor-pointer"
                 >
                   <div className="w-5 h-5 bg-white rounded-sm flex items-center justify-center">
-                    <span className="text-[#25D366] font-bold text-xs">W</span>
+                    <span className="text-[#25D366] font-bold text-xs"><FaWhatsapp  /></span>
                   </div>
                   <span className="font-medium">WhatsApp</span>
                 </button>
 
                 <button
                   onClick={() => shareOnSocialMedia("telegram")}
-                  className="flex items-center gap-3 p-3 bg-[#0088CC] hover:bg-[#0088CC]/90 text-white rounded-lg transition-colors"
+                  className="flex items-center gap-3 p-3 bg-[#0088CC] hover:bg-[#0088CC]/90 text-white rounded-lg transition-colors cursor-pointer"
                 >
                   <div className="w-5 h-5 bg-white rounded-sm flex items-center justify-center">
-                    <span className="text-[#0088CC] font-bold text-sm">T</span>
+                    <span className="text-[#0088CC] font-bold text-sm"><FaTelegramPlane /></span>
                   </div>
                   <span className="font-medium">Telegram</span>
                 </button>
 
                 <button
                   onClick={() => shareOnSocialMedia("linkedin")}
-                  className="flex items-center gap-3 p-3 bg-[#0A66C2] hover:bg-[#0A66C2]/90 text-white rounded-lg transition-colors col-span-2"
+                  className="flex items-center gap-3 p-3 bg-[#0A66C2] hover:bg-[#0A66C2]/90 text-white rounded-lg transition-colors col-span-2 cursor-pointer"
                 >
                   <div className="w-5 h-5 bg-white rounded-sm flex items-center justify-center">
                     <span className="text-[#0A66C2] font-bold text-sm">in</span>
@@ -673,6 +790,7 @@ function MovieDetails() {
       )}
     </div>
   );
+}
 }
 
 export default MovieDetails;

@@ -1115,7 +1115,7 @@ function Payment() {
               {/* Price Breakdown */}
               <div className="space-y-2 mb-6">
                 <div className="flex justify-between text-gray-300">
-                  <span>Seats ({selectedSeats?.length})</span>
+                  <span>{selectedSeats?.length} Seats </span>
                   <span>₹{seatTotal}</span>
                 </div>
                 <div className="flex flex-col gap-2">

@@ -13,6 +13,8 @@ import { selectToken } from "../components/store/authSlice";
 import api from "../api/api";
 import DownloadTicketButton from "../components/DownloadTicketButton";
 import toast from "react-hot-toast";
+import { useAuthModalContext } from "../hooks/useAuthModalContext";
+import AuthModal from "../components/auth/AuthModal";
 
 function MyBookings() {
   const navigate = useNavigate();
@@ -21,6 +23,18 @@ function MyBookings() {
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  const { isAuthModalOpen, authModalTab, closeAuthModal, switchAuthTab } =
+    useAuthModalContext();
+
+  // Scroll to top when component mounts
+    useEffect(() => {
+    window.scrollTo({
+      top: 0,
+      left: 0,
+      behavior: "smooth",
+    });
+  }, []);
 
   // Fetch user's bookings
   useEffect(() => {
@@ -136,6 +150,12 @@ function MyBookings() {
             </div>
           </div>
         </div>
+        <AuthModal
+        isOpen={isAuthModalOpen}
+        onClose={closeAuthModal}
+        activeTab={authModalTab}
+        onTabChange={switchAuthTab}
+      />
       </div>
     );
   }
@@ -208,7 +228,7 @@ function MyBookings() {
       <div className="container mx-auto max-w-6xl">
         {/* Header */}
         <div className="mb-8">
-         <div className="mb-8 flex items-center relative bg-gray-800 rounded-lg p-2">
+          <div className="mb-8 flex items-center relative bg-gray-800 rounded-lg p-2">
             <button
               onClick={() => navigate("/")}
               className="absolute left-4 text-white hover:text-primary transition-colors"
@@ -226,8 +246,18 @@ function MyBookings() {
               className="absolute right-4 text-white hover:text-primary transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               title="Refresh bookings"
             >
-              <svg className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              <svg
+                className={`w-5 h-5 ${loading ? "animate-spin" : ""}`}
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                />
               </svg>
             </button>
           </div>
@@ -413,42 +443,45 @@ function MyBookings() {
                     </div>
                   </div>
                 </div>
-                  <div className="border-t border-gray-700 pt-3 flex lg:hidden justify-between items-center">
-                      <p className="text-gray-500 text-sm">
-                        Booked on: {formatDateTime(booking.bookingTime).date}
-                      </p>
+                <div className="border-t border-gray-700 pt-3 flex lg:hidden justify-between items-center">
+                  <p className="text-gray-500 text-sm">
+                    Booked on: {formatDateTime(booking.bookingTime).date}
+                  </p>
 
-                      {/* Download Ticket Button */}
-                      <DownloadTicketButton
-                        bookingId={booking.id || booking.bookingId}
-                        status={booking.status}
-                        size="md"
-                        onDownloadStart={() =>
-                          console.log(
-                            "Download started for booking:",
-                            booking.id || booking.bookingId
-                          )
-                        }
-                        onDownloadComplete={() =>
-                          console.log(
-                            "Download completed for booking:",
-                            booking.id || booking.bookingId
-                          )
-                        }
-                        onDownloadError={(error) =>
-                          console.error(
-                            "Download error for booking:",
-                            booking.id || booking.bookingId,
-                            error
-                          )
-                        }
-                      />
-                    </div>
+                  {/* Download Ticket Button */}
+                  <DownloadTicketButton
+                    bookingId={booking.id || booking.bookingId}
+                    status={booking.status}
+                    size="md"
+                    onDownloadStart={() =>
+                      console.log(
+                        "Download started for booking:",
+                        booking.id || booking.bookingId
+                      )
+                    }
+                    onDownloadComplete={() =>
+                      console.log(
+                        "Download completed for booking:",
+                        booking.id || booking.bookingId
+                      )
+                    }
+                    onDownloadError={(error) =>
+                      console.error(
+                        "Download error for booking:",
+                        booking.id || booking.bookingId,
+                        error
+                      )
+                    }
+                  />
+                </div>
               </div>
             ))}
           </div>
         )}
+        {/* Auth Modal */}
+      
       </div>
+      
     </div>
   );
 }

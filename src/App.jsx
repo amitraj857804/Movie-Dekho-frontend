@@ -9,6 +9,7 @@ import {
   SeatLayout,
   MyBookings,
   Favorite,
+  NotFound,
 } from "./index.js";
 import Payment from "./pages/Payment.jsx";
 import { Route, Routes, useLocation } from "react-router-dom";
@@ -21,7 +22,11 @@ function App() {
 
   return (
     <>
-      <Toaster />
+      <Toaster
+        containerStyle={{
+          zIndex: 99999,
+        }}
+      />
       <AuthModalProvider>
         {!isAdminRoute && <Navbar />}
         <Routes>
@@ -33,6 +38,8 @@ function App() {
           <Route path="/info" element={<UserPanel />} />
           <Route path="/my-bookings" element={<MyBookings />} />
           <Route path="/favorite" element={<Favorite />} />
+          {/* Catch-all route for undefined paths */}
+          <Route path="*" element={<NotFound />} />
         </Routes>
         {!isAdminRoute && <Footer />}
       </AuthModalProvider>
