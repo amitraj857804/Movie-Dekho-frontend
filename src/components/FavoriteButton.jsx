@@ -5,7 +5,7 @@ import {
   addToFavorites,
   removeFromFavorites,
   selectIsMovieFavorite,
-  selectFavoritesActionLoading,
+  selectMovieLoadingState,
 } from "../components/store/favoritesSlice.js";
 import { selectToken } from "../components/store/authSlice";
 import { useAuthModalContext } from "../hooks/useAuthModalContext";
@@ -22,7 +22,7 @@ const FavoriteButton = ({
   const dispatch = useDispatch();
   const token = useSelector(selectToken);
   const isFavorite = useSelector(selectIsMovieFavorite(movieId));
-  const isLoading = useSelector(selectFavoritesActionLoading);
+  const isLoading = useSelector(selectMovieLoadingState(movieId));
   const { openAuthModal } = useAuthModalContext();
 
   const handleToggleFavorite = async (e) => {

@@ -57,9 +57,13 @@ const MovieSearch = ({ isOpen, onClose }) => {
       document.body.style.position = '';
       document.body.style.top = '';
       document.body.style.width = '';
-      // Restore scroll position
+      // Restore scroll position with smooth behavior
       if (scrollY) {
-        window.scrollTo(0, parseInt(scrollY || '0') * -1);
+        window.scrollTo({
+          top: parseInt(scrollY || '0') * -1,
+          left: 0,
+          behavior: "smooth"
+        });
       }
     }
 

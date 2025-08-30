@@ -346,7 +346,7 @@ const SignUp = ({ onSwitchTab, onClose, isModal = false, modalNavigationContext 
          {loader && (
               <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
             )}
-            {loader ? "" : "Login"}
+            {loader ? "" : "Sign Up"}
           </button>
         </div>{" "}
       </form>

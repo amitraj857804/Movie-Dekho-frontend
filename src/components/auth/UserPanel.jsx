@@ -1,61 +1,69 @@
 import { useEffect, useState, useRef } from "react";
 import { useSelector, useDispatch } from "react-redux";
-import { selectToken, clearUserName, fetchUserName } from "../store/authSlice";
-import api from "../../api/api";
+import { selectToken, clearUserName, fetchUserName, clearToken } from "../store/authSlice";
+import {
+  selectUserProfile,
+  selectUserProfileLoading,
+  selectUserProfileUpdateLoading,
+  selectUserProfilePasswordLoading,
+  selectUserProfileDeleteLoading,
+  selectUserProfileError,
+  updateUserProfile,
+  changeUserPassword,
+  deleteUserAccount,
+  clearUserProfile,
+  invalidateUserProfile,
+} from "../store/userProfileSlice";
+import { useScrollOnLoadComplete } from "../../hooks/useScrollToTop";
+import { useUserProfile } from "../../hooks/useUserProfile";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 
 const UserPanel = () => {
-  const [profile, setProfile] = useState(null);
-  const [loading, setLoading] = useState(true);
+  // Use Redux selectors instead of local state for profile data
+  const profile = useSelector(selectUserProfile);
+  const loading = useSelector(selectUserProfileLoading);
+  const updateLoading = useSelector(selectUserProfileUpdateLoading);
+  const passwordLoading = useSelector(selectUserProfilePasswordLoading);
+  const deleteLoading = useSelector(selectUserProfileDeleteLoading);
+  const error = useSelector(selectUserProfileError);
+  
+  // Local state for UI only
   const [isEditing, setIsEditing] = useState(false);
   const [editFormData, setEditFormData] = useState({
     username: "",
     gender: "",
   });
-  const [updateLoading, setUpdateLoading] = useState(false);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [passwordData, setPasswordData] = useState({
     currentPassword: "",
     newPassword: "",
     confirmPassword: "",
   });
-  const [passwordLoading, setPasswordLoading] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [deleteLoading, setDeleteLoading] = useState(false);
   const [deleteConfirmText, setDeleteConfirmText] = useState("");
+  
   const token = useSelector(selectToken);
   const dispatch = useDispatch();
   const usernameInputRef = useRef(null);
   const changePasswordREf = useRef(null);
   const navigate = useNavigate();
 
-  useEffect(() => {
-    const fetchProfile = async () => {
-      try {
-        setLoading(true);
-        const response = await api.get("/api/user/profile", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-        setProfile(response.data);
-        setEditFormData({
-          username: response.data.username || "",
-          gender: response.data.gender || "",
-        });
-      } catch (error) {
-        console.error("Error fetching profile:", error);
-        toast.error("Failed to load profile");
-      } finally {
-        setLoading(false);
-      }
-    };
+  // Use custom hook for smart profile fetching
+  const { refetch } = useUserProfile();
 
-    if (token) {
-      fetchProfile();
+  // Use custom hook for smooth scrolling when loading completes or modals change
+  useScrollOnLoadComplete(loading, [showPasswordModal, showDeleteModal]);
+
+  // Update edit form data when profile changes
+  useEffect(() => {
+    if (profile) {
+      setEditFormData({
+        username: profile.username || "",
+        gender: profile.gender || "",
+      });
     }
-  }, [token]);
+  }, [profile]);
 
   useEffect(() => {
     if (isEditing && usernameInputRef.current) {
@@ -88,27 +96,26 @@ const UserPanel = () => {
 
   const handleUpdateProfile = async () => {
     try {
-      setUpdateLoading(true);
-      const response = await api.put("/api/user/profile", editFormData, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
+      const result = await dispatch(updateUserProfile(editFormData)).unwrap();
+      
       toast.success("Profile updated successfully!");
+      setIsEditing(false);
 
-      // Clear the cached username and immediately fetch the updated one
-      dispatch(clearUserName());
-      dispatch(fetchUserName());
+      // Update the username in the auth slice for navbar consistency
+      if (editFormData.username !== profile.username) {
+        dispatch(clearUserName());
+        dispatch(fetchUserName());
+      }
 
-      // Refresh the page to update all components including navbar
+      // Force a profile refetch to ensure UI is in sync
       setTimeout(() => {
-        window.location.reload();
-      }, 500);
+        refetch();
+      }, 100);
+
+      // No need to reload - Redux will update the UI automatically!
     } catch (error) {
       console.error("Error updating profile:", error);
-      toast.error("Failed to update profile");
-      setUpdateLoading(false);
+      toast.error(error || "Failed to update profile");
     }
   };
 
@@ -119,7 +126,7 @@ const UserPanel = () => {
       [name]: value,
     }));
   };
-
+console.log(passwordData);
   const handleChangePassword = async () => {
     if (passwordData.newPassword !== passwordData.confirmPassword) {
       toast.error("New passwords don't match!");
@@ -132,19 +139,10 @@ const UserPanel = () => {
     }
 
     try {
-      setPasswordLoading(true);
-      await api.put(
-        "/api/user/change-password",
-        {
-          currentPassword: passwordData.currentPassword,
-          newPassword: passwordData.newPassword,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      await dispatch(changeUserPassword({
+        currentPassword: passwordData.currentPassword,
+        newPassword: passwordData.newPassword,
+      })).unwrap();
 
       toast.success("Password changed successfully!");
       setShowPasswordModal(false);
@@ -155,9 +153,7 @@ const UserPanel = () => {
       });
     } catch (error) {
       console.error("Error changing password:", error);
-      toast.error(error.response.data || "Failed to change password");
-    } finally {
-      setPasswordLoading(false);
+      toast.error(error || "Failed to change password");
     }
   };
 
@@ -172,24 +168,18 @@ const UserPanel = () => {
 
   const handleDeleteAccount = async () => {
     try {
-      setDeleteLoading(true);
-      await api.delete("/api/user/delete", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      await dispatch(deleteUserAccount()).unwrap();
 
       toast.success("Account deleted successfully!");
 
-      // Clear auth data and redirect to home
+      // Clear all user data and redirect to home
       dispatch(clearUserName());
-      localStorage.removeItem("token");
+      dispatch(clearUserProfile());
+      dispatch(clearToken());
       window.location.href = "/";
     } catch (error) {
       console.error("Error deleting account:", error);
-      toast.error(error.response?.data || "Failed to delete account");
-    } finally {
-      setDeleteLoading(false);
+      toast.error(error || "Failed to delete account");
     }
   };
 
@@ -197,16 +187,6 @@ const UserPanel = () => {
     setShowDeleteModal(false);
     setDeleteConfirmText("");
   };
-
-  useEffect(() => {
-    if (!loading) {
-      window.scrollTo({
-        top: 0,
-        left: 0,
-        behavior: "smooth",
-      });
-    }
-  }, [showPasswordModal, showDeleteModal,loading]);
 
   if (loading) {
     return (
@@ -232,20 +212,38 @@ const UserPanel = () => {
       {!showPasswordModal && !showDeleteModal && (
         <div className="max-w-4xl w-full sm:min-w-[60%] mx-auto">
           <div className="bg-gray-800 rounded-lg shadow-xl overflow-hidden ">
-            <div className="bg-gradient-to-r from-red-600 to-slate-700 px-6 py-8">
-              <div className="flex items-center space-x-4">
-                <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center shadow-lg">
-                  <span className="text-2xl font-bold text-gray-800">
-                    {profile.username?.charAt(0).toUpperCase()}
-                  </span>
+            <div className="bg-gradient-to-r from-red-600 to-slate-700 px-6 py-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-4">
+                  <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center shadow-lg">
+                    <span className="text-2xl font-bold text-gray-800">
+                      {profile?.username?.charAt(0).toUpperCase()}
+                    </span>
+                  </div>
+                  <div>
+                    <h1 className="text-2xl font-bold text-white">
+                      {profile?.username}
+                    </h1>
+                    <p className="text-white">{profile?.email}</p>
+                  </div>
                 </div>
-                <div>
-                  <h1 className="text-2xl font-bold text-white">
-                    {profile.username}
-                  </h1>
-                  <p className="text-white">{profile.email}</p>
-                </div>
+                
               </div>
+              <div className="flex justify-end">
+              <button
+                  onClick={refetch}
+                  className="text-red-500 hover:text-white transition-colors duration-300 text-sm font-medium cursor-pointer"
+                >
+                  {error ? "↻ Try Again" : "↻ Refresh"}
+                </button>
+                </div>
+              {error && (
+                <div className="mt-4 bg-red-900/30 border border-red-600 rounded-lg p-3">
+                  <div className="flex items-center gap-2 text-red-400 text-sm">
+                    <span>⚠️ {error}</span>
+                  </div>
+                </div>
+              )}
             </div>
 
             <div className="p-6">
@@ -324,7 +322,7 @@ const UserPanel = () => {
                 <h3 className="text-lg font-semibold text-white mb-4">
                   Account Settings
                 </h3>
-                <div className="flex flex-wrap gap-4">
+                <div className="flex flex-wrap gap-3">
                   {isEditing ? (
                     <>
                       <button
@@ -353,19 +351,19 @@ const UserPanel = () => {
                     <>
                       <button
                         onClick={() => setShowPasswordModal(true)}
-                        className="bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-700 hover:to-gray-800 text-white px-6 py-3 rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg cursor-pointer"
+                        className="bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-700 hover:to-gray-800 text-white px-5 py-3 rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg cursor-pointer"
                       >
                         Change Password
                       </button>
                       <button
                         onClick={() => navigate("/my-bookings")}
-                        className="bg-gradient-to-r from-red-400 to-pink-500 hover:from-red-500 hover:to-pink-600 text-white px-6 py-3 rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg cursor-pointer"
+                        className="bg-gradient-to-r from-red-400 to-pink-500 hover:from-red-500 hover:to-pink-600 text-white px-5 py-3 rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg cursor-pointer"
                       >
                         View Bookings
                       </button>
                       <button
                         onClick={() => setShowDeleteModal(true)}
-                        className="bg-gradient-to-r from-red-800 opacity-80 to-pink-800 hover:from-red-700 hover:to-pink-700 text-white px-6 py-3 rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg cursor-pointer"
+                        className="bg-gradient-to-r from-red-800 opacity-80 to-pink-800 hover:from-red-700 hover:to-pink-700 text-white px-5 py-3 rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg cursor-pointer"
                       >
                         Delete Account
                       </button>

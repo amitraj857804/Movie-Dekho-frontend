@@ -1,7 +1,6 @@
 import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
-  fetchFavoriteMovies,
   selectFavoriteMovies,
   selectFavoritesLoading,
   selectFavoritesError,
@@ -10,6 +9,8 @@ import {
 } from "../components/store/favoritesSlice";
 import { selectToken } from "../components/store/authSlice";
 import { useAuthModalContext } from "../hooks/useAuthModalContext";
+import { useFavorites } from "../hooks/useFavorites";
+import { useScrollToTop } from "../hooks/useScrollToTop";
 import MovieCard from "../components/MovieCard";
 import AuthModal from "../components/auth/AuthModal";
 import { useNavigate } from "react-router-dom";
@@ -23,6 +24,9 @@ function Favorite() {
   const token = useSelector(selectToken);
   const navigate = useNavigate();
 
+  // Use the custom hook for smart favorites fetching
+  const { refetch } = useFavorites();
+
   const {
     isAuthModalOpen,
     authModalTab,
@@ -31,21 +35,8 @@ function Favorite() {
     switchAuthTab,
   } = useAuthModalContext();
 
-  useEffect(() => {
-    // Only fetch favorites once when component mounts and user is logged in
-    if (token && favoriteMovies.length === 0) {
-      dispatch(fetchFavoriteMovies());
-    }
-  }, [dispatch, token, favoriteMovies.length]);
-
-  // Scroll to top when component mounts
-  useEffect(() => {
-    window.scrollTo({
-      top: 0,
-      left: 0,
-      behavior: "smooth",
-    });
-  }, []);
+  // Use custom hook for smooth scrolling to top
+  useScrollToTop();
 
 
   // Close auth modal when user successfully logs in
@@ -132,7 +123,7 @@ function Favorite() {
             </h2>
             <p className="text-gray-500 mb-4">{error}</p>
             <button
-              onClick={() => dispatch(fetchFavoriteMovies())}
+              onClick={refetch}
               className="bg-primary hover:bg-primary/90 text-white px-6 py-2 rounded-full transition-colors duration-300 cursor-pointer"
             >
               Try Again
@@ -153,11 +144,17 @@ function Favorite() {
 
           {favoriteMovies.length > 0 ? (
             <>
-              <div className="mb-6">
+              <div className="mb-6 flex justify-between items-center">
                 <p className="text-gray-400">
                   You have {favoriteMovies.length} favourite movie
                   {favoriteMovies.length !== 1 ? "s" : ""}
                 </p>
+                <button
+                  onClick={refetch}
+                  className="text-primary hover:!text-white transition-colors duration-300 text-sm font-medium cursor-pointer"
+                >
+                  ↻ Refresh
+                </button>
               </div>
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
                 {favoriteMovies.map((movie) => (

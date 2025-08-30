@@ -6,6 +6,7 @@ import api from "../api/api";
 import { selectToken } from "../components/store/authSlice";
 import { useSelector, useDispatch } from "react-redux";
 import { useAuthModalContext } from "../hooks/useAuthModalContext";
+import { useScrollOnLoadComplete } from "../hooks/useScrollToTop";
 import AuthModal from "../components/auth/AuthModal";
 import toast from "react-hot-toast";
 import { XIcon } from "lucide-react";
@@ -41,6 +42,9 @@ function SeatLayout() {
   const [error, setError] = useState(null);
   const [ticketCount, setTicketCount] = useState(10);
   const [isBookingConfirming, setIsBookingConfirming] = useState(false);
+
+  // Use custom hook for smooth scrolling when loading completes
+  useScrollOnLoadComplete(loading);
 
   // Main initialization effect
   useEffect(() => {
@@ -84,17 +88,6 @@ function SeatLayout() {
       cleanupRef.current = true;
     };
   }, [currentBooking, movie, selectedCinema, navigate, id, dispatch, token]);
-
-  // Scroll to top when loading completes
-  useEffect(() => {
-    if (!loading) {
-      window.scrollTo({
-        top: 0,
-        left: 0,
-        behavior: "smooth",
-      });
-    }
-  }, [loading]);
 
   // Handle seat selection
   const handleSeatClick = (seat) => {

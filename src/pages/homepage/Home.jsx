@@ -6,7 +6,8 @@ import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchAllMovies, selectAllMovies } from "../../components/store/movieSlice";
 import { selectToken } from "../../components/store/authSlice";
-import { fetchFavoriteMovies } from "../../components/store/favoritesSlice";
+import { useFavorites } from "../../hooks/useFavorites";
+import { useScrollOnLoadComplete } from "../../hooks/useScrollToTop";
 
 function Home() {
   const {
@@ -20,6 +21,12 @@ function Home() {
   const fetchedMovies = useSelector(selectAllMovies);
   const token = useSelector(selectToken);
   const [isLoading, setIsLoading] = useState(true);
+
+  // Use the custom hook for smart favorites fetching
+  useFavorites();
+
+  // Use custom hook for smooth scrolling when loading completes
+  useScrollOnLoadComplete(isLoading);
 
   // Fetch movies on component mount
   useEffect(() => {
@@ -39,25 +46,7 @@ function Home() {
     } else {
       setIsLoading(false);
     }
-  }, [dispatch, fetchedMovies]);
-
-  // Fetch favorites when user is logged in
-  useEffect(() => {
-    if (token) {
-      dispatch(fetchFavoriteMovies());
-    }
-  }, [dispatch, token]);
-
-  // Scroll to top after loading is complete
-  useEffect(() => {
-    if (!isLoading) {
-      window.scrollTo({
-        top: 0,
-        left: 0,
-        behavior: "smooth",
-      });
-    }
-  }, [isLoading]); 
+  }, [dispatch, fetchedMovies]); 
 
   if (isLoading) {
     return (

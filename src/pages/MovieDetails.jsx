@@ -18,6 +18,7 @@ import {
   selectAllMovies,
   fetchAllMovies,
 } from "../components/store/movieSlice";
+import { useScrollOnLoadComplete } from "../hooks/useScrollToTop";
 import Trailer from "../components/Trailer";
 import FavoriteButton from "../components/FavoriteButton";
 import BookTicket from "../components/BookTicket";
@@ -45,6 +46,9 @@ function MovieDetails() {
 
   const showMoreMovies = movies.filter((m)=> m.id !== parseInt(id));
  
+  // Use custom hook for smooth scrolling when loading completes or ID changes
+  useScrollOnLoadComplete(isLoading, [id]);
+
   // Fetch movies if not available in store
   useEffect(() => {
     const loadMovies = async () => {
@@ -60,17 +64,6 @@ function MovieDetails() {
 
     loadMovies();
   }, [dispatch, movies.length]);
-
-  // Scroll to top after loading is complete or when movie ID changes
-  useEffect(() => {
-    if (!isLoading) {
-      window.scrollTo({
-        top: 0,
-        left: 0,
-        behavior: "smooth",
-      });
-    }
-  }, [id, isLoading]);
 
   // Track mobile view based on window size
   useEffect(() => {

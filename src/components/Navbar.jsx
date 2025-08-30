@@ -36,8 +36,14 @@ function Navbar() {
           // Username fetched successfully
         })
         .catch((error) => {
-          dispatch(clearToken());
-          toast.error("Session expired. Please login again.");
+          // Only clear token for authentication errors (401)
+          if (error.includes && error.includes('Authentication expired')) {
+            dispatch(clearToken());
+            toast.error("Session expired. Please login again.");
+          } else {
+            // Log other errors but don't log out the user
+            console.error("Failed to fetch username:", error);
+          }
         });
     }
   }, [token, username, dispatch]);

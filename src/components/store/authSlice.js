@@ -22,6 +22,11 @@ export const fetchUserName = createAsyncThunk(
 
             return response.data.username || response.data;
         } catch (error) {
+            // Only return authentication-related errors for token clearing
+            if (error.response?.status === 401) {
+                const errorMessage = 'Authentication expired. Please login again.';
+                return rejectWithValue(errorMessage);
+            }
 
             const errorMessage = error.response?.data?.message || error.message || 'Failed to fetch username';
             return rejectWithValue(errorMessage);

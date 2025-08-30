@@ -17,6 +17,8 @@ import {
   clearBooking,
   clearSelectedSeats,
 } from "../components/store/bookingSlice";
+
+import { useScrollOnLoadComplete } from "../hooks/useScrollToTop";
 import toast from "react-hot-toast";
 import api from "../api/api";
 import ShareDialog from "../components/shareDialog";
@@ -68,16 +70,8 @@ function Payment() {
   const TIMER_KEY = "payment_timer_start";
   const startTimeRef = useRef(null);
 
-  // Scroll to top after loading is complete or when movie ID changes
-  useEffect(() => {
-    if (!isProcessing) {
-      window.scrollTo({
-        top: 0,
-        left: 0,
-        behavior: "smooth",
-      });
-    }
-  }, [isProcessing]);
+  // Use custom hook for smooth scrolling when processing completes
+  useScrollOnLoadComplete(isProcessing);
 
   // Redirect if no booking data (with delay to allow Redux hydration)
   useEffect(() => {
@@ -494,6 +488,23 @@ function Payment() {
 
         setPaymentSuccess(true);
         toast.success("Payment successful! Booking confirmed.");
+
+        // Add the booking to user bookings cache
+        const bookingToAdd = {
+          id: response.data.bookingId || Date.now(), // Use response booking ID or fallback
+          movie,
+          selectedDateObj,
+          selectedTimeWithAmPm,
+          selectedCinema,
+          selectedSeats,
+          finalTotal: seatTotal + convenienceFee,
+          status: "confirmed",
+          bookingDate: new Date().toISOString(),
+          ...response.data // Include any additional data from the response
+        };
+        
+        // Dispatch to Redux to update cached bookings
+        
 
         // Clear timer on successful payment
         localStorage.removeItem(TIMER_KEY);

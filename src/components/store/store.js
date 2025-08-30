@@ -3,6 +3,8 @@ import { movieSlice  } from "./movieSlice";
 import { tokenSlice } from "./authSlice";
 import { favoritesSlice } from "./favoritesSlice";
 import bookingReducer from "./bookingSlice";
+import userBookingReducer from "./userBookingSlice";
+import userProfileReducer from "./userProfileSlice";
 
 
 const store = configureStore({
@@ -11,7 +13,8 @@ const store = configureStore({
         movieData: movieSlice.reducer,
         favorites: favoritesSlice.reducer,
         booking: bookingReducer,
-      
+        userBookings: userBookingReducer,
+        userProfile: userProfileReducer,
     }
 });
 

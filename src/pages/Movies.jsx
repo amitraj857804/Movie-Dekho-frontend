@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { selectAllMovies, fetchAllMovies } from '../components/store/movieSlice';
+import { useScrollToTop } from '../hooks/useScrollToTop';
 import MovieCard from '../components/MovieCard';
 import { useAuthModalContext } from '../hooks/useAuthModalContext';
 import AuthModal from '../components/auth/AuthModal';
@@ -16,20 +17,14 @@ function Movies() {
     switchAuthTab,
   } = useAuthModalContext();
 
+  // Use custom hook for smooth scrolling to top
+  useScrollToTop();
+
   useEffect(() => {
     if (allMovies.length === 0) {
       dispatch(fetchAllMovies());
     }
   }, [dispatch, allMovies.length]);
-
-  // Scroll to top when component mounts
-  useEffect(() => {
-    window.scrollTo({
-      top: 0,
-      left: 0,
-      behavior: "smooth",
-    });
-  }, []);
 
   // Function to parse date (handles both array and string formats)
   const parseDate = (dateString) => {
