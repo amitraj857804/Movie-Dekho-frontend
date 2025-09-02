@@ -14,25 +14,28 @@ import {
   selectUserBookings,
   selectUserBookingsLoading,
   selectUserBookingsError,
-  selectUserBookingsActionLoading,
 } from "../components/store/userBookingSlice";
 import { useAuthModalContext } from "../hooks/useAuthModalContext";
 import { useScrollToTop } from "../hooks/useScrollToTop";
 import { useUserBookings } from "../hooks/useUserBookings";
 import DownloadTicketButton from "../components/DownloadTicketButton";
-import toast from "react-hot-toast";
+import QRCode from "../components/QRCode";
 import AuthModal from "../components/auth/AuthModal";
 
 function MyBookings() {
   const navigate = useNavigate();
-  const dispatch = useDispatch();
+  
   const token = useSelector(selectToken);
+
+  // QR Code visibility state
+  const [showQRCode, setShowQRCode] = useState(null); // stores bookingId of QR code to show
 
   // Use Redux selectors instead of local state
   const bookings = useSelector(selectUserBookings);
   const loading = useSelector(selectUserBookingsLoading);
   const error = useSelector(selectUserBookingsError);
-  const actionLoading = useSelector(selectUserBookingsActionLoading);
+
+ 
 
   const { isAuthModalOpen, authModalTab, closeAuthModal, switchAuthTab } =
     useAuthModalContext();
@@ -81,11 +84,11 @@ function MyBookings() {
           </div>
         </div>
         <AuthModal
-        isOpen={isAuthModalOpen}
-        onClose={closeAuthModal}
-        activeTab={authModalTab}
-        onTabChange={switchAuthTab}
-      />
+          isOpen={isAuthModalOpen}
+          onClose={closeAuthModal}
+          activeTab={authModalTab}
+          onTabChange={switchAuthTab}
+        />
       </div>
     );
   }
@@ -154,7 +157,7 @@ function MyBookings() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-900 pt-20 px-6 sm:px-30">
+    <div className="min-h-screen bg-gray-900 pt-20 px-6 sm:px-30 pb-10">
       <div className="container mx-auto max-w-6xl">
         {/* Header */}
         <div className="mb-8">
@@ -170,7 +173,6 @@ function MyBookings() {
                 My Bookings
               </h1>
             </div>
-          
           </div>
           <div className="flex justify-between items-center">
             <p className="text-gray-400">
@@ -275,7 +277,6 @@ function MyBookings() {
                         </p>
                       </div>
                     </div>
-
                     {/* Cinema and Show Details */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                       <div className="space-y-2">
@@ -316,39 +317,98 @@ function MyBookings() {
                           </span>
                         </div>
                       </div>
-                    </div>
 
+                      {/* QR Code Display */}
+                      {showQRCode === booking.bookingId && (
+                        <div className="flex justify-center items-center w-full ">
+                        <div className="mt-4 rounded-lg p-4  text-center ">
+                          <h4 className="text-white font-semibold mb-3">
+                            Booking QR Code
+                          </h4>
+                          <div className="flex justify-center mb-3">
+                            <QRCode
+                              data={JSON.stringify({
+                                bookingId: booking.id || booking.bookingId,
+                                movie:
+                                  booking.movie?.title || booking.movieTitle,
+                                cinema:
+                                  booking.cinema?.name || booking.theaterName,
+                                date: formatDateTime(booking.showDateTime).date,
+                                time: formatDateTime(booking.showDateTime).time,
+                                seats: Array.isArray(booking.seats)
+                                  ? booking.seats.join(", ")
+                                  : booking.seatNumbers?.join(", ") || "N/A",
+                                total: booking.totalAmount || booking.amount,
+                                status: booking.status,
+                                timestamp:
+                                  booking.bookingTime ||
+                                  new Date().toISOString(),
+                              })}
+                              size={150}
+                              className="bg-white p-1 rounded"
+                            />
+                          </div>
+                          <p className="text-gray-400 text-xs">
+                            Show this QR code at the cinema for verification
+                          </p>
+                        </div>
+                         </div>
+                      )}
+                    </div>{" "}
                     {/* Booking Date and Actions */}
                     <div className="border-t border-gray-700 pt-3 hidden lg:flex justify-between items-center">
                       <p className="text-gray-500 text-sm">
                         Booked on: {formatDateTime(booking.bookingTime).date}
                       </p>
 
-                      {/* Download Ticket Button */}
-                      <DownloadTicketButton
-                        bookingId={booking.id || booking.bookingId}
-                        status={booking.status}
-                        size="md"
-                        onDownloadStart={() =>
-                          console.log(
-                            "Download started for booking:",
-                            booking.id || booking.bookingId
-                          )
-                        }
-                        onDownloadComplete={() =>
-                          console.log(
-                            "Download completed for booking:",
-                            booking.id || booking.bookingId
-                          )
-                        }
-                        onDownloadError={(error) =>
-                          console.error(
-                            "Download error for booking:",
-                            booking.id || booking.bookingId,
-                            error
-                          )
-                        }
-                      />
+                      <div className="flex gap-2">
+                        {/* QR Code Button */}
+                        <button
+                          onClick={(e) => {
+                            const currentBookingId = booking.bookingId;
+                            setShowQRCode(
+                              showQRCode === currentBookingId ? null : currentBookingId
+                            );
+                            // Scroll to keep button in view after QR toggle
+                            setTimeout(() => {
+                              e.target.scrollIntoView({ 
+                                behavior: 'smooth', 
+                                block: 'nearest',
+                                inline: 'nearest' 
+                              });
+                            }, 100);
+                          }}
+                          className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 cursor-pointer text-white text-sm rounded-md transition-colors"
+                        >
+                          {showQRCode === booking.bookingId ? "Hide QR" : "Show QR"}
+                        </button>
+
+                        {/* Download Ticket Button */}
+                        <DownloadTicketButton
+                          bookingId={booking.id || booking.bookingId}
+                          status={booking.status}
+                          size="md"
+                          onDownloadStart={() =>
+                            console.log(
+                              "Download started for booking:",
+                              booking.id || booking.bookingId
+                            )
+                          }
+                          onDownloadComplete={() =>
+                            console.log(
+                              "Download completed for booking:",
+                              booking.id || booking.bookingId
+                            )
+                          }
+                          onDownloadError={(error) =>
+                            console.error(
+                              "Download error for booking:",
+                              booking.id || booking.bookingId,
+                              error
+                            )
+                          }
+                        />
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -357,40 +417,61 @@ function MyBookings() {
                     Booked on: {formatDateTime(booking.bookingTime).date}
                   </p>
 
-                  {/* Download Ticket Button */}
-                  <DownloadTicketButton
-                    bookingId={booking.id || booking.bookingId}
-                    status={booking.status}
-                    size="md"
-                    onDownloadStart={() =>
-                      console.log(
-                        "Download started for booking:",
-                        booking.id || booking.bookingId
-                      )
-                    }
-                    onDownloadComplete={() =>
-                      console.log(
-                        "Download completed for booking:",
-                        booking.id || booking.bookingId
-                      )
-                    }
-                    onDownloadError={(error) =>
-                      console.error(
-                        "Download error for booking:",
-                        booking.id || booking.bookingId,
-                        error
-                      )
-                    }
-                  />
+                  <div className="flex gap-2">
+                    {/* QR Code Button */}
+                    <button
+                      onClick={(e) => {
+                        const currentBookingId = booking.bookingId;
+                        setShowQRCode(
+                          showQRCode === currentBookingId ? null : currentBookingId
+                        );
+                        // Scroll to keep button in view after QR toggle
+                        setTimeout(() => {
+                          e.target.scrollIntoView({ 
+                            behavior: 'smooth', 
+                            block: 'nearest',
+                            inline: 'nearest' 
+                          });
+                        }, 100);
+                      }}
+                      className="px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs  cursor-pointer rounded-md transition-colors"
+                    >
+                      {showQRCode === booking.bookingId ? "Hide QR" : "QR"}
+                    </button>
+
+                    {/* Download Ticket Button */}
+                    <DownloadTicketButton
+                      bookingId={booking.id || booking.bookingId}
+                      status={booking.status}
+                      size="md"
+                      onDownloadStart={() =>
+                        console.log(
+                          "Download started for booking:",
+                          booking.id || booking.bookingId
+                        )
+                      }
+                      onDownloadComplete={() =>
+                        console.log(
+                          "Download completed for booking:",
+                          booking.id || booking.bookingId
+                        )
+                      }
+                      onDownloadError={(error) =>
+                        console.error(
+                          "Download error for booking:",
+                          booking.id || booking.bookingId,
+                          error
+                        )
+                      }
+                    />
+                  </div>
                 </div>
               </div>
             ))}
           </div>
         )}
-        {/* Auth Modal */}
-      
+       
       </div>
-      
     </div>
   );
 }

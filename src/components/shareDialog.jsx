@@ -21,6 +21,29 @@ const ShareDialog = ({
     finalTotal
   } = bookingData;
 
+  // Format date for display
+  const formatDateForDisplay = (dateObj) => {
+    if (!dateObj) return "";
+    
+    let date;
+    if (dateObj.fullDate instanceof Date) {
+      date = dateObj.fullDate;
+    } else if (dateObj.dateString) {
+      date = new Date(dateObj.dateString);
+    } else if (typeof dateObj.fullDate === 'string') {
+      date = new Date(dateObj.fullDate);
+    } else {
+      return dateObj.fullDate || "";
+    }
+    
+    // Format as dd-mm-yy
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = String(date.getFullYear()).slice(-2);
+    
+    return `${day}-${month}-${year}`;
+  };
+
   // Format date
   const formatDate = (dateObj) => {
     if (!dateObj) return "";
@@ -35,8 +58,8 @@ const ShareDialog = ({
   // Create sharing message
   const createShareMessage = () => {
     const movieTitle = movie?.title || "Movie";
-    const cinemaName = selectedCinema?.theatreName || "Cinema";
-    const date = formatDate(selectedDateObj);
+    const cinemaName = selectedCinema?.theaterName || "Cinema";
+    const date = formatDateForDisplay(selectedDateObj)
     const time = selectedTimeWithAmPm || "";
     const seatNumbers = selectedSeats?.map(seat => seat.seatNumber || seat.id).join(", ") || "";
     const total = finalTotal || 0;
@@ -123,10 +146,10 @@ Excited for the show! 🍿✨
   };
 
   return (
-    <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 px-4 pt-20">
+    <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 px-4 pt-20 mt-1">
       <div className={`bg-gray-800 rounded-xl max-w-md w-full border border-gray-600 ${className}`}>
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-gray-600">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-600">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-primary/20 rounded-full flex items-center justify-center">
               <ShareIcon className="w-6 h-6 text-primary" />
@@ -142,9 +165,9 @@ Excited for the show! 🍿✨
           </div>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-gray-700 rounded-lg transition-colors"
+            className="p-2 hover:bg-gray-700  rounded-lg transition-colors"
           >
-            <XMarkIcon className="w-5 h-5 text-gray-400 cursor-pointer" />
+            <XMarkIcon className="w-5 h-5 text-gray-400 hover:text-white cursor-pointer" />
           </button>
         </div>
 
@@ -154,8 +177,8 @@ Excited for the show! 🍿✨
           <div className="bg-gray-700/50 rounded-lg p-4 mb-6">
             <h4 className="text-white font-semibold mb-2">{movie?.title}</h4>
             <div className="text-sm text-gray-300 space-y-1">
-              <p>📅 {formatDate(selectedDateObj)} at {selectedTimeWithAmPm}</p>
-              <p>🏛️ {selectedCinema?.name}</p>
+              <p>📅 {formatDateForDisplay(selectedDateObj)} at {selectedTimeWithAmPm}</p>
+              <p>🏛️ {selectedCinema?.theaterName}</p>
               <p>💺 Seats: {selectedSeats?.map(seat => seat.seatNumber || seat.id).join(", ")}</p>
               <p className="text-primary font-semibold">💰 Total: ₹{finalTotal}</p>
             </div>
@@ -200,18 +223,21 @@ Excited for the show! 🍿✨
               {/* Twitter */}
               <button
                 onClick={shareToTwitter}
-                className="flex items-center gap-3 p-3 bg-sky-500 hover:bg-sky-600 text-white rounded-lg transition-colors cursor-pointer"
-              >
-                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z"/>
-                </svg>
+                className="flex items-center gap-3 p-3 bg-black hover:bg-gray-900 text-white rounded-lg transition-colors cursor-pointer">
+                <svg
+                      className="w-5 h-5"
+                      fill="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+                    </svg>
                 <span className="text-sm font-medium">Twitter</span>
               </button>
 
               {/* Telegram */}
               <button
                 onClick={shareToTelegram}
-                className="flex items-center gap-3 p-3 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors cursor-pointer"
+                className="flex items-center gap-3 p-3 bg-[#0088CC] hover:bg-[#0088CC]/90 text-white rounded-lg transition-colors cursor-pointer"
               >
                 <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
                   <path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/>

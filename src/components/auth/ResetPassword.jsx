@@ -344,10 +344,10 @@ function ResetPassword({ onSwitchTab, onClose, isModal = false }) {
               <button
                 disabled={loader}
                 type="submit"
-                className="font-semibold text-sm text-white bg-gradient-to-bl from-primary to bg-red-600 sm:w-[35%] w-[40%] py-2 rounded-full  hover:border hover:border-primary hover:bg-black transition-colors duration-100 my-3 cursor-pointer"
+                className="font-semibold text-sm text-white flex justify-center bg-gradient-to-bl from-primary to bg-red-600 sm:w-[35%] w-[40%] py-2 rounded-full  hover:border hover:border-primary hover:bg-black transition-colors duration-100 my-3 cursor-pointer"
               >
                 {loader
-                  ? "Loading..."
+                  ? <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
                   : otpSent
                   ? "Reset Password"
                   : "Send OTP"}

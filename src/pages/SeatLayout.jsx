@@ -44,7 +44,9 @@ function SeatLayout() {
   const [isBookingConfirming, setIsBookingConfirming] = useState(false);
 
   // Use custom hook for smooth scrolling when loading completes
-  useScrollOnLoadComplete(loading);
+  useScrollOnLoadComplete(!loading);
+
+  
 
   // Main initialization effect
   useEffect(() => {

@@ -22,6 +22,7 @@ import { useScrollOnLoadComplete } from "../hooks/useScrollToTop";
 import toast from "react-hot-toast";
 import api from "../api/api";
 import ShareDialog from "../components/shareDialog";
+import QRCode from "../components/QRCode";
 
 function Payment() {
   const navigate = useNavigate();
@@ -489,22 +490,6 @@ function Payment() {
         setPaymentSuccess(true);
         toast.success("Payment successful! Booking confirmed.");
 
-        // Add the booking to user bookings cache
-        const bookingToAdd = {
-          id: response.data.bookingId || Date.now(), // Use response booking ID or fallback
-          movie,
-          selectedDateObj,
-          selectedTimeWithAmPm,
-          selectedCinema,
-          selectedSeats,
-          finalTotal: seatTotal + convenienceFee,
-          status: "confirmed",
-          bookingDate: new Date().toISOString(),
-          ...response.data // Include any additional data from the response
-        };
-        
-        // Dispatch to Redux to update cached bookings
-        
 
         // Clear timer on successful payment
         localStorage.removeItem(TIMER_KEY);
@@ -570,7 +555,7 @@ function Payment() {
     };
 
     return (
-      <div className="min-h-screen bg-gray-900 pt-20 px-6 pb-10">
+      <div className="min-h-screen bg-gray-900 pt-20 px-4 pb-10">
         <div className="container mx-auto max-w-4xl">
           {/* Success Header with Steps */}
           <div className="mb-8">
@@ -690,7 +675,7 @@ function Payment() {
 
           {/* Booking Details Card */}
           <div className="max-w-md mx-auto">
-            <div className="bg-gray-800 rounded-xl p-8 text-center">
+            <div className="bg-gray-800 rounded-xl p-6 text-center">
               <div className="bg-gray-700 rounded-lg p-4 mb-6 text-left">
                 <h3 className="text-white font-semibold mb-4">
                   Booking Details
@@ -703,7 +688,7 @@ function Payment() {
                     alt={displayData.movie?.title}
                     className="w-16 h-20 rounded object-cover flex-shrink-0"
                   />
-                  <div className="flex-1">
+                  <div className="flex-1 ">
                     <p className="text-white font-medium text-base mb-1">
                       {displayData.movie?.title}
                     </p>
@@ -718,7 +703,30 @@ function Payment() {
                       Time: {displayData.selectedTimeWithAmPm}
                     </p>
                   </div>
+                   {/* QR Code Section */}
+              <div className="bg-gray-700 rounded-lg  text-center w-[30%]">
+                
+                <div className="flex justify-center mb-3">
+                  <QRCode 
+                    data={JSON.stringify({
+                      bookingId: successBookingData?.bookingId || `BK-${Date.now()}`,
+                      movie: displayData.movie?.title,
+                      cinema: displayData.selectedCinema?.theaterName,
+                      date: `${displayData.selectedDateObj?.date} ${displayData.selectedDateObj?.monthName}`,
+                      time: displayData.selectedTimeWithAmPm,
+                      seats: displayData.selectedSeats?.map((seat) => seat.seatNumber || seat.number).join(", "),
+                      total: displayData.finalTotal,
+                      timestamp: new Date().toISOString()
+                    })}
+                    size={100}
+                    className="bg-white p-1 rounded"
+                  />
                 </div>
+                
+              </div>
+
+                </div>
+                
 
                 {/* Seats and Total */}
                 <div className="border-t border-gray-600 pt-3">
@@ -738,6 +746,8 @@ function Payment() {
                   </p>
                 </div>
               </div>
+
+             
 
               <div className="flex flex-col gap-3">
                 <button
