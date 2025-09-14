@@ -4,10 +4,12 @@ import TrendingMovies from "./TrendingMovies";
 import AuthModal from "../../components/auth/AuthModal";
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchAllMovies, selectAllMovies } from "../../components/store/movieSlice";
+import { selectAllMovies, selectMoviesLoading } from "../../components/store/movieSlice";
 import { selectToken } from "../../components/store/authSlice";
 import { useFavorites } from "../../hooks/useFavorites";
+import { useMovies } from "../../hooks/useMovies";
 import { useScrollOnLoadComplete } from "../../hooks/useScrollToTop";
+import { useScrollToTopOnChange } from "../../hooks/useScrollToTopDelayed";
 
 function Home() {
   const {
@@ -17,36 +19,19 @@ function Home() {
     switchAuthTab,
   } = useAuthModalContext();
 
-  const dispatch = useDispatch();
   const fetchedMovies = useSelector(selectAllMovies);
+  const isLoading = useSelector(selectMoviesLoading);
   const token = useSelector(selectToken);
-  const [isLoading, setIsLoading] = useState(true);
 
-  // Use the custom hook for smart favorites fetching
+  // Use the custom hooks for smart fetching
   useFavorites();
+  useMovies();
 
   // Use custom hook for smooth scrolling when loading completes
-  useScrollOnLoadComplete(isLoading);
+  useScrollOnLoadComplete(isLoading); 
 
-  // Fetch movies on component mount
-  useEffect(() => {
-    const loadMovies = async () => {
-      try {
-        await dispatch(fetchAllMovies()).unwrap();
-      } catch (error) {
-        console.error("Error fetching movies:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    // Only fetch if we don't have movies already
-    if (!fetchedMovies || fetchedMovies.length === 0) {
-      loadMovies();
-    } else {
-      setIsLoading(false);
-    }
-  }, [dispatch, fetchedMovies]); 
+  // Scroll to top when user logs in (token changes from null to a value)
+  useScrollToTopOnChange(token, 150); 
 
   if (isLoading) {
     return (

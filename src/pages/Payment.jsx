@@ -341,42 +341,43 @@ function Payment() {
     if (name === "expiryDate") {
       // Allow only numbers and forward slash
       let cleanValue = value.replace(/[^0-9/]/g, "");
-      
+
       // Remove any existing slashes to start fresh
       let numbersOnly = cleanValue.replace(/\//g, "");
-      
+
       // Limit to 4 digits
       numbersOnly = numbersOnly.substring(0, 4);
-      
+
       // Validate month if we have at least 2 digits
       if (numbersOnly.length >= 2) {
         const month = numbersOnly.substring(0, 2);
         const monthNum = parseInt(month);
-        
+
         // If month is greater than 12, limit to valid month
         if (monthNum > 12) {
           // If first digit is 2-9, only allow 1 (for months 01-12)
-          if (month.charAt(0) > '1') {
-            numbersOnly = '1' + numbersOnly.substring(1);
+          if (month.charAt(0) > "1") {
+            numbersOnly = "1" + numbersOnly.substring(1);
           } else if (monthNum > 12) {
             // If month is 13-19, convert to 12
-            numbersOnly = '12' + numbersOnly.substring(2);
+            numbersOnly = "12" + numbersOnly.substring(2);
           }
         }
-        
+
         // If month starts with 0, make sure second digit isn't 0 (prevent 00)
-        if (month === '00') {
-          numbersOnly = '01' + numbersOnly.substring(2);
+        if (month === "00") {
+          numbersOnly = "01" + numbersOnly.substring(2);
         }
       }
-      
+
       // Add slash after 2 digits if we have more than 2
       if (numbersOnly.length > 2) {
-        cleanValue = numbersOnly.substring(0, 2) + "/" + numbersOnly.substring(2);
+        cleanValue =
+          numbersOnly.substring(0, 2) + "/" + numbersOnly.substring(2);
       } else {
         cleanValue = numbersOnly;
       }
-      
+
       setFormData({ ...formData, [name]: cleanValue });
       return;
     }
@@ -402,20 +403,23 @@ function Payment() {
         setPaymentError("Please enter a valid expiry date (MM/YY)");
         return false;
       }
-      
+
       // Validate month (should be 01-12)
       const month = parseInt(expiryDate.substring(0, 2));
       if (month < 1 || month > 12) {
         setPaymentError("Please enter a valid month (01-12)");
         return false;
       }
-      const year = parseInt(expiryDate.substring(3,5))
+      const year = parseInt(expiryDate.substring(3, 5));
       // Check if the expiry date is not in the past
       const currentDate = new Date();
       const currentYear = currentDate.getFullYear() % 100; // Get last 2 digits
       const currentMonth = currentDate.getMonth() + 1; // getMonth() returns 0-11
-      
-      if (year < currentYear || (year === currentYear && month < currentMonth)) {
+
+      if (
+        year < currentYear ||
+        (year === currentYear && month < currentMonth)
+      ) {
         setPaymentError("Card has expired. Please enter a valid expiry date");
         return false;
       }
@@ -489,7 +493,6 @@ function Payment() {
 
         setPaymentSuccess(true);
         toast.success("Payment successful! Booking confirmed.");
-
 
         // Clear timer on successful payment
         localStorage.removeItem(TIMER_KEY);
@@ -703,30 +706,29 @@ function Payment() {
                       Time: {displayData.selectedTimeWithAmPm}
                     </p>
                   </div>
-                   {/* QR Code Section */}
-              <div className="bg-gray-700 rounded-lg  text-center w-[30%]">
-                
-                <div className="flex justify-center mb-3">
-                  <QRCode 
-                    data={JSON.stringify({
-                      bookingId: successBookingData?.bookingId || `BK-${Date.now()}`,
-                      movie: displayData.movie?.title,
-                      cinema: displayData.selectedCinema?.theaterName,
-                      date: `${displayData.selectedDateObj?.date} ${displayData.selectedDateObj?.monthName}`,
-                      time: displayData.selectedTimeWithAmPm,
-                      seats: displayData.selectedSeats?.map((seat) => seat.seatNumber || seat.number).join(", "),
-                      total: displayData.finalTotal,
-                      timestamp: new Date().toISOString()
-                    })}
-                    size={100}
-                    className="bg-white p-1 rounded"
-                  />
+                  {/* QR Code Section */}
+                  <div className="bg-gray-700 rounded-lg  text-center w-[30%]">
+                    <div className="flex justify-center mb-3">
+                      <QRCode
+                        data={JSON.stringify({
+                          bookingId:
+                            successBookingData?.bookingId || `BK-${Date.now()}`,
+                          movie: displayData.movie?.title,
+                          cinema: displayData.selectedCinema?.theaterName,
+                          date: `${displayData.selectedDateObj?.date} ${displayData.selectedDateObj?.monthName}`,
+                          time: displayData.selectedTimeWithAmPm,
+                          seats: displayData.selectedSeats
+                            ?.map((seat) => seat.seatNumber || seat.number)
+                            .join(", "),
+                          total: displayData.finalTotal,
+                          timestamp: new Date().toISOString(),
+                        })}
+                        size={100}
+                        className="bg-white p-1 rounded"
+                      />
+                    </div>
+                  </div>
                 </div>
-                
-              </div>
-
-                </div>
-                
 
                 {/* Seats and Total */}
                 <div className="border-t border-gray-600 pt-3">
@@ -746,8 +748,6 @@ function Payment() {
                   </p>
                 </div>
               </div>
-
-             
 
               <div className="flex flex-col gap-3">
                 <button
@@ -773,7 +773,7 @@ function Payment() {
           </div>
 
           {/* Share Dialog */}
-          <ShareDialog 
+          <ShareDialog
             isOpen={showShareDialog}
             onClose={() => setShowShareDialog(false)}
             bookingData={displayData}
@@ -916,9 +916,16 @@ function Payment() {
           {/* Payment Form */}
           <div className="lg:col-span-2">
             <div className="bg-gray-800 rounded-lg p-6">
-              <h2 className="text-xl font-semibold text-white mb-6">
+              <div className="flex justify-between items-center">
+
+              <h2 className="text-xl font-semibold text-white mb-6 ">
                 Payment Details
               </h2>
+                <span className="sm:hidden flex font-mono text-md  items-center gap-1 mb-6  ">
+                  <ClockIcon className="w-6 h-6 " />
+                  {formatTime(timeLeft)}
+                </span>
+              </div>
 
               {/* Payment Method Selection */}
               <div className="mb-6">
@@ -1090,7 +1097,7 @@ function Payment() {
                   Booking Summary
                 </h3>
 
-                <span className="font-mono text-md flex items-center gap-1 ">
+                <span className="sm:flex hidden font-mono text-md  items-center gap-1 ">
                   <ClockIcon className="w-6 h-6 " />
                   {formatTime(timeLeft)}
                 </span>

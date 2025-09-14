@@ -12,6 +12,8 @@ import {
   NotFound,
 } from "./index.js";
 import Payment from "./pages/Payment.jsx";
+import TermsAndConditions from "./pages/TermsAndConditions.jsx";
+import PrivacyPolicy from "./pages/PrivacyPolicy.jsx";
 import { Route, Routes, useLocation } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
 import { AuthModalProvider } from "./hooks/useAuthModalContext.jsx";
@@ -38,6 +40,8 @@ function App() {
           <Route path="/info" element={<UserPanel />} />
           <Route path="/my-bookings" element={<MyBookings />} />
           <Route path="/favorite" element={<Favorite />} />
+          <Route path="/terms-and-conditions" element={<TermsAndConditions />} />
+          <Route path="/privacy-policy" element={<PrivacyPolicy />} />
           {/* Catch-all route for undefined paths */}
           <Route path="*" element={<NotFound />} />
         </Routes>

@@ -16,8 +16,9 @@ import {
 import { FaWhatsapp, FaTelegramPlane } from "react-icons/fa";
 import {
   selectAllMovies,
-  fetchAllMovies,
+  selectMoviesLoading,
 } from "../components/store/movieSlice";
+import { useMovies } from "../hooks/useMovies";
 import { useScrollOnLoadComplete } from "../hooks/useScrollToTop";
 import Trailer from "../components/Trailer";
 import FavoriteButton from "../components/FavoriteButton";
@@ -30,9 +31,7 @@ import TrendingMovies from "./homepage/TrendingMovies";
 function MovieDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const dispatch = useDispatch();
   const [showTrailer, setShowTrailer] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
   const [isExpanded, setIsExpanded] = useState(false);
   const [isMobileView, setIsMobileView] = useState(false);
   const [activeTab, setActiveTab] = useState("bookTicket"); // Track active tab
@@ -42,28 +41,16 @@ function MovieDetails() {
     useAuthModalContext();
 
   const movies = useSelector(selectAllMovies);
+  const isLoading = useSelector(selectMoviesLoading);
   const movie = movies.find((m) => m.id === parseInt(id));
 
   const showMoreMovies = movies.filter((m) => m.id !== parseInt(id));
 
+  // Use custom hooks for smart fetching
+  useMovies();
+
   // Use custom hook for smooth scrolling when loading completes or ID changes
   useScrollOnLoadComplete(isLoading, [id]);
-
-  // Fetch movies if not available in store
-  useEffect(() => {
-    const loadMovies = async () => {
-      if (movies.length === 0) {
-        try {
-          await dispatch(fetchAllMovies()).unwrap();
-        } catch (error) {
-          console.error("Error fetching movies:", error);
-        }
-      }
-      setIsLoading(false);
-    };
-
-    loadMovies();
-  }, [dispatch, movies.length]);
 
   // Track mobile view based on window size
   useEffect(() => {

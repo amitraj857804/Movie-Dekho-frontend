@@ -7,6 +7,7 @@ import { setToken } from "../store/authSlice";
 import { FaArrowLeft } from "react-icons/fa";
 import api from "../../api/api";
 import toast from "react-hot-toast";
+import { useScrollToTopDelayed } from "../../hooks/useScrollToTopDelayed";
 
 function OtpLogin({ onSwitchTab, onClose, isModal = false }) {
   const navigate = useNavigate();
@@ -18,6 +19,7 @@ function OtpLogin({ onSwitchTab, onClose, isModal = false }) {
   const [canResend, setCanResend] = useState(true);
   const intervalRef = useRef(null);
   const dispatch = useDispatch();
+  const scrollToTop = useScrollToTopDelayed(100);
 
   const {
     register,
@@ -132,8 +134,10 @@ const sendOtpHandler = async (data) => {
         toast.success("Login successful!");
         if (isModal && onClose) {
           onClose();
+          scrollToTop();
         } else {
           navigate("/");
+          scrollToTop();
         }
       } else {
         toast.error("Login successful but no token received");

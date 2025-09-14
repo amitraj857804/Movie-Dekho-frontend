@@ -1,14 +1,16 @@
 import { useEffect } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { selectAllMovies, fetchAllMovies } from '../components/store/movieSlice';
+import { useSelector } from 'react-redux';
+import { selectAllMovies, selectMoviesLoading, selectMoviesError } from '../components/store/movieSlice';
 import { useScrollToTop } from '../hooks/useScrollToTop';
+import { useMovies } from '../hooks/useMovies';
 import MovieCard from '../components/MovieCard';
 import { useAuthModalContext } from '../hooks/useAuthModalContext';
 import AuthModal from '../components/auth/AuthModal';
 
 function Movies() {
-  const dispatch = useDispatch();
   const allMovies = useSelector(selectAllMovies);
+  const isLoading = useSelector(selectMoviesLoading);
+  const error = useSelector(selectMoviesError);
   
   const {
     isAuthModalOpen,
@@ -17,14 +19,9 @@ function Movies() {
     switchAuthTab,
   } = useAuthModalContext();
 
-  // Use custom hook for smooth scrolling to top
+  // Use custom hooks for smart fetching and scrolling
   useScrollToTop();
-
-  useEffect(() => {
-    if (allMovies.length === 0) {
-      dispatch(fetchAllMovies());
-    }
-  }, [dispatch, allMovies.length]);
+  const { refetch } = useMovies();
 
   // Function to parse date (handles both array and string formats)
   const parseDate = (dateString) => {
@@ -55,7 +52,33 @@ function Movies() {
           All Movies
         </h1>
         
-        {movies.length > 0 ? (
+        {/* Error State */}
+        {error && (
+          <div className="text-center py-16">
+            <div className="bg-red-900/20 border border-red-600 rounded-lg p-6 max-w-md mx-auto">
+              <h2 className="text-xl text-red-400 mb-4">Unable to Load Movies</h2>
+              <p className="text-gray-400 mb-4">{error}</p>
+              <button 
+                onClick={refetch}
+                className="bg-primary hover:bg-primary/90 text-white px-6 py-2 rounded-lg transition-colors"
+              >
+                Try Again
+              </button>
+            </div>
+          </div>
+        )}
+        
+        {/* Loading State */}
+        {isLoading && !error && (
+          <div className="text-center py-16">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+            <h2 className="text-xl text-gray-400 mb-4">Loading movies...</h2>
+            <p className="text-gray-500">Please wait while we fetch the latest movies</p>
+          </div>
+        )}
+        
+        {/* Movies Grid */}
+        {!isLoading && !error && movies.length > 0 && (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
             {movies.map((movie) => (
               <MovieCard
@@ -65,11 +88,21 @@ function Movies() {
               />
             ))}
           </div>
-        ) : (
+        )}
+        
+        {/* Empty State */}
+        {!isLoading && !error && movies.length === 0 && (
           <div className="text-center py-16">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-            <h2 className="text-xl text-gray-400 mb-4">Loading movies...</h2>
-            <p className="text-gray-500">Please wait while we fetch the latest movies</p>
+            <div className="bg-gray-800 rounded-lg p-6 max-w-md mx-auto">
+              <h2 className="text-xl text-gray-400 mb-4">No Movies Available</h2>
+              <p className="text-gray-500 mb-4">There are currently no movies in our database.</p>
+              <button 
+                onClick={refetch}
+                className="bg-primary hover:bg-primary/90 text-white px-6 py-2 rounded-lg transition-colors"
+              >
+                Refresh
+              </button>
+            </div>
           </div>
         )}
       </div>

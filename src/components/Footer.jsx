@@ -68,12 +68,7 @@ function Footer() {
                   <span>Movies</span>
                 </Link>
               </li>
-              <li>
-                <Link to="/theaters" className="text-gray-400 hover:text-primary transition-colors flex items-center space-x-2">
-                  <MdTheaters className="text-sm" />
-                  <span>Theaters</span>
-                </Link>
-              </li>
+              
               <li>
                 <Link to="/my-bookings" className="text-gray-400 hover:text-primary transition-colors flex items-center space-x-2">
                   <FaTicketAlt className="text-sm" />
@@ -86,12 +81,7 @@ function Footer() {
                   <span>Favorites</span>
                 </Link>
               </li>
-              <li>
-                <a href="#" className="text-gray-400 hover:text-primary transition-colors flex items-center space-x-2">
-                  <FaPlay className="text-sm" />
-                  <span>Trailers</span>
-                </a>
-              </li>
+              
             </ul>
           </div>
 
@@ -106,14 +96,14 @@ function Footer() {
                 </a>
               </li>
               <li>
-                <a href="#" className="text-gray-400 hover:text-primary transition-colors">
+                <Link to="/terms-and-conditions" className="text-gray-400 hover:text-primary transition-colors">
                   Terms & Conditions
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="#" className="text-gray-400 hover:text-primary transition-colors">
+                <Link to="/privacy-policy" className="text-gray-400 hover:text-primary transition-colors">
                   Privacy Policy
-                </a>
+                </Link>
               </li>
               <li>
                 <a href="#" className="text-gray-400 hover:text-primary transition-colors">

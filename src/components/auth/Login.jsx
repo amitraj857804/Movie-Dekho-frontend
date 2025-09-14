@@ -8,6 +8,7 @@ import api from "../../api/api";
 import { useSelector,useDispatch } from "react-redux";
 import { setToken, selectToken } from "../store/authSlice";
 import { FaArrowLeft } from "react-icons/fa";
+import { useScrollToTopDelayed } from "../../hooks/useScrollToTopDelayed";
 
 function Login({ onSwitchTab, onClose, isModal = false,}) {
   
@@ -16,6 +17,7 @@ function Login({ onSwitchTab, onClose, isModal = false,}) {
   const [onLogin, setOnLogin] = useState(true);
   const token = useSelector(selectToken);
   const dispatch = useDispatch();
+  const scrollToTop = useScrollToTopDelayed(100);
 
 
   const {
@@ -36,8 +38,10 @@ function Login({ onSwitchTab, onClose, isModal = false,}) {
     if (token) {
       if (isModal && onClose) {
         onClose();
+        scrollToTop();
       } else {
         navigate("/");
+        scrollToTop();
       }
     }
   }, [token, isModal, onClose]);

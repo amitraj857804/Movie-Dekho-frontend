@@ -5,6 +5,9 @@ import { useDispatch, useSelector } from "react-redux";
 import toast from "react-hot-toast";
 import { useAuthModalContext } from "../hooks/useAuthModalContext";
 import MovieSearch from "./MovieSearch";
+import useScrollToTop from "../hooks/useScrollToTop";
+import { useScrollDetection } from "../hooks/useScrollDetection";
+import { useScrollToTopDelayed } from "../hooks/useScrollToTopDelayed";
 
 import {
   fetchUserName,
@@ -18,7 +21,6 @@ import {
 function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [showLogoutDropdown, setShowLogoutDropdown] = useState(false);
-  const [isScrolled, setIsScrolled] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
   const dropdownRef = useRef(null);
   const navigate = useNavigate();
@@ -27,6 +29,10 @@ function Navbar() {
   const token = useSelector(selectToken);
   const isLoading = useSelector(selectUsernameLoading);
   const { openAuthModal } = useAuthModalContext();
+  const scrollToTop = useScrollToTopDelayed(100);
+
+  // Use custom hook for scroll detection
+  const isScrolled = useScrollDetection(20);
 
   useEffect(() => {
     if (token && !username) {
@@ -47,17 +53,6 @@ function Navbar() {
         });
     }
   }, [token, username, dispatch]);
-
-  // Scroll effect
-  useEffect(() => {
-    const handleScroll = () => {
-      const scrollTop = window.scrollY;
-      setIsScrolled(scrollTop > 20);
-    };
-
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -88,6 +83,7 @@ function Navbar() {
     setShowLogoutDropdown(false);
     toast.success("Logged out successfully!");
     navigate("/");
+    scrollToTop();
   };
 
   const handleSearchClick = () => {
